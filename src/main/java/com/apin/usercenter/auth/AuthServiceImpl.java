@@ -7,7 +7,7 @@ import com.apin.usercenter.common.entity.Function;
 import com.apin.usercenter.common.entity.Navigator;
 import com.apin.usercenter.common.mapper.AuthMapper;
 import com.apin.usercenter.component.Core;
-import com.apin.usercenter.component.Token;
+import com.apin.usercenter.common.entity.Token;
 import com.apin.util.Generator;
 import com.apin.util.JsonUtils;
 import com.apin.util.ReplyHelper;
@@ -107,10 +107,12 @@ public class AuthServiceImpl implements AuthService {
         if (code == null) return ReplyHelper.invalidPassword();
 
         String userId = core.getUserId(appId, account);
-        if (userId == null) return ReplyHelper.notExist();
+        if (userId == null) return ReplyHelper.error();
 
         Token token = core.getToken(userId);
-        if (token == null) return ReplyHelper.fail();
+        if (token == null) return ReplyHelper.error();
+
+        if (core.isInvalid(token)) return ReplyHelper.fail("用户被禁止登录");
 
         core.initAccessToken(token);
         TokenPackage tokens = core.creatorKey(token, code, deptId);
@@ -188,6 +190,8 @@ public class AuthServiceImpl implements AuthService {
         if (!reply.getSuccess()) return reply;
 
         Boolean success = core.verifyPayPassword(verify.getBasis(), payPassword);
+        if (success == null) return ReplyHelper.fail("未设置支付密码,请先设置支付密码!");
+
         long time = new Date().getTime() - now.getTime();
         logger.info("verifyPayPassword耗时:" + time + "毫秒...");
 
@@ -198,18 +202,17 @@ public class AuthServiceImpl implements AuthService {
      * 获取用户导航栏
      *
      * @param token 访问令牌
-     * @param appId 应用ID
      * @return Reply
      */
     @Override
-    public Reply getNavigators(String token, String appId) {
+    public Reply getNavigators(String token) {
         Date now = new Date();
 
         Verify verify = new Verify(core, redis, token);
         Reply reply = verify.compare();
         if (!reply.getSuccess()) return reply;
 
-        List<Navigator> navigators = authMapper.getNavigators(appId, verify.getUserId(), verify.getDeptId());
+        List<Navigator> navigators = authMapper.getNavigators(verify.getAppId(), verify.getUserId(), verify.getDeptId());
         long time = new Date().getTime() - now.getTime();
         logger.info("getNavigators耗时:" + time + "毫秒...");
 
@@ -243,7 +246,7 @@ public class AuthServiceImpl implements AuthService {
      * 生成短信验证码
      *
      * @param token   访问令牌
-     * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码)
+     * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码;5:修改手机号)
      * @param mobile  手机号
      * @param minutes 验证码有效时长(分钟)
      * @param length  验证码长度
@@ -274,7 +277,7 @@ public class AuthServiceImpl implements AuthService {
      * 验证短信验证码
      *
      * @param token   访问令牌
-     * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码)
+     * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码;5:修改手机号)
      * @param mobile  手机号
      * @param code    验证码
      * @param isCheck 是否检验模式(true:检验模式,验证后验证码不失效;false:验证模式,验证后验证码失效)
@@ -295,5 +298,4 @@ public class AuthServiceImpl implements AuthService {
 
         return success ? ReplyHelper.success() : ReplyHelper.invalidParam("验证码错误！");
     }
-
 }

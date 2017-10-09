@@ -34,23 +34,28 @@ public class RoleController {
      * 获取指定的角色
      *
      * @param token 访问令牌
+     * @param roleId 角色ID
+     * @param secret 验证用的安全码(初始化角色时使用)
      * @return Reply
      */
     @GetMapping("/v1.1/roles/{id}")
-    public Reply getRole(@RequestHeader("Authorization") String token, @PathVariable("id") String roleId) throws Exception {
-        return service.getRole(token, roleId);
+    public Reply getRole(@RequestHeader("Authorization") String token, @PathVariable("id") String roleId,
+                         @RequestParam(required = false) String secret) throws Exception {
+        return service.getRole(token, roleId, secret);
     }
 
     /**
      * 新增角色
      *
-     * @param token 访问令牌
-     * @param role  角色实体数据
+     * @param token  访问令牌
+     * @param role   角色实体数据
+     * @param secret 验证用的安全码(初始化角色时使用)
      * @return Reply
      */
     @PostMapping("/v1.1/roles")
-    public Reply addRole(@RequestHeader("Authorization") String token, @RequestBody Role role) throws Exception {
-        return service.addRole(token, role);
+    public Reply addRole(@RequestHeader("Authorization") String token, @RequestBody Role role,
+                         @RequestParam(required = false) String secret) throws Exception {
+        return service.addRole(token, role, secret);
     }
 
     /**
@@ -99,5 +104,17 @@ public class RoleController {
     @DeleteMapping("/v1.1/roles/{id}/members")
     public Reply removeRoleMember(@RequestHeader("Authorization") String token, @RequestBody List<String> list) throws Exception {
         return service.removeRoleMember(token, list);
+    }
+
+    /**
+     * 获取指定名称的角色的成员用户
+     *
+     * @param token    访问令牌
+     * @param roleName 角色名称
+     * @return Reply
+     */
+    @GetMapping("/v1.1/roles/{name}/users")
+    public Reply getRoleUsersByName(@RequestHeader("Authorization") String token, @PathVariable("name") String roleName) throws Exception {
+        return service.getRoleUsersByName(token, roleName);
     }
 }

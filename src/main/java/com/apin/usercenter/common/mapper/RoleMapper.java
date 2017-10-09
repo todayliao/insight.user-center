@@ -3,6 +3,7 @@ package com.apin.usercenter.common.mapper;
 import com.apin.usercenter.common.entity.Function;
 import com.apin.usercenter.common.entity.Member;
 import com.apin.usercenter.common.entity.Role;
+import com.apin.util.pojo.User;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 /**
  * @author 宣炳刚
  * @date 2017/9/11
- * @remark
+ * @remark 角色相关DAL
  */
 @Mapper
 public interface RoleMapper extends Mapper {
@@ -24,9 +25,7 @@ public interface RoleMapper extends Mapper {
     @Results({
             @Result(property = "applicationId", column = "application_id"),
             @Result(property = "accountId", column = "account_id"),
-            @Result(property = "builtin", column = "is_builtin"),
-            @Result(property = "creatorUserId", column = "creator_user_id"),
-            @Result(property = "createdTime", column = "created_time")
+            @Result(property = "builtin", column = "is_builtin")
     })
     @Select("SELECT * FROM role WHERE application_id=#{appid} ORDER BY created_time;")
     List<Role> getRoles(@Param("appid") String appId);
@@ -40,9 +39,7 @@ public interface RoleMapper extends Mapper {
     @Results({
             @Result(property = "applicationId", column = "application_id"),
             @Result(property = "accountId", column = "account_id"),
-            @Result(property = "builtin", column = "is_builtin"),
-            @Result(property = "creatorUserId", column = "creator_user_id"),
-            @Result(property = "createdTime", column = "created_time")
+            @Result(property = "builtin", column = "is_builtin")
     })
     @Select("select * from role where id = #{id}")
     Role getRoleById(@Param("id") String id);
@@ -126,7 +123,7 @@ public interface RoleMapper extends Mapper {
      */
     @Insert("<script>INSERT role_action(id,role_id,function_id,action) VALUES " +
             "<foreach collection = \"functions\" item = \"item\" index = \"index\" separator = \",\"> " +
-            "(uuid(),#{id},#{item.id},#{item.action}) " +
+            "(REPLACE(uuid(),'-',''),#{id},#{item.id},#{item.action}) " +
             "</foreach></script>")
     Integer addRoleFunction(Role role);
 
@@ -162,4 +159,20 @@ public interface RoleMapper extends Mapper {
             "#{item} " +
             "</foreach></script>")
     Integer removeRoleMember(List<String> list);
+
+    /**
+     * 获取指定名称的角色的成员用户
+     *
+     * @param appId     应用ID
+     * @param accountId 账户ID
+     * @param roleName  角色名称
+     * @return
+     */
+    @Select("SELECT u.id,u.`name`,u.account,u.remark FROM role r JOIN role_member m ON m.role_id=r.id " +
+            "JOIN `user` u ON u.id=m.member_id WHERE m.type=1 AND r.`name`=#{name} AND r.account_id=#{accountid} AND r.application_id=#{appid} UNION " +
+            "SELECT u.id,u.`name`,u.account,u.remark FROM role r JOIN role_member m ON m.role_id=r.id JOIN group_member g ON g.group_id=m.member_id " +
+            "JOIN `user` u ON u.id=g.user_id WHERE m.type=2 AND r.`name`=#{name} AND r.account_id=#{accountid} AND r.application_id=#{appid} UNION " +
+            "SELECT u.id,u.`name`,u.account,u.remark FROM role r JOIN role_member m ON m.role_id=r.id JOIN post_member o ON o.post_id=m.member_id " +
+            "JOIN `user` u ON u.id=o.user_id WHERE m.type=3 AND r.`name`=#{name} AND r.account_id=#{accountid} AND r.application_id=#{appid};")
+    List<User> getRoleUsersByName(@Param("appid") String appId, @Param("accountid") String accountId, @Param("name") String roleName);
 }

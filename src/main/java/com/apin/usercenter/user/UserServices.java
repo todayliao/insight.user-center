@@ -32,11 +32,12 @@ public interface UserServices {
     /**
      * 注册用户
      *
-     * @param token 访问令牌
-     * @param user  User实体
+     * @param token    访问令牌
+     * @param user     User实体,来自Body
+     * @param initRole 是否初始化角色
      * @return Reply
      */
-    Reply signUp(String token, User user);
+    Reply signUp(String token, User user, Boolean initRole);
 
     /**
      * 删除用户

@@ -1,7 +1,7 @@
 package com.apin.usercenter.common;
 
 import com.apin.usercenter.component.Core;
-import com.apin.usercenter.component.Token;
+import com.apin.usercenter.common.entity.Token;
 import com.apin.util.Generator;
 import com.apin.util.JsonUtils;
 import com.apin.util.ReplyHelper;
@@ -59,8 +59,6 @@ public class Verify {
         // 初始化参数
         accessToken = JsonUtils.toAccessToken(token);
         tokenId = accessToken.getId();
-        appId = accessToken.getAppId();
-        accountId = accessToken.getAccountId();
         userId = accessToken.getUserId();
         userName = accessToken.getUserName();
         deptId = accessToken.getDeptId();
@@ -119,6 +117,9 @@ public class Verify {
 
         Boolean isPermit = core.verifyToken(basis, accessToken.getSecret(), 1);
         if (!isPermit) return ReplyHelper.invalidToken();
+
+        appId = basis.getAppId();
+        accountId = basis.getAccountId();
 
         // 无需鉴权,返回成功
         if (function == null || function.isEmpty()) return ReplyHelper.success();

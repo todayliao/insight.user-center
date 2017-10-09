@@ -5,6 +5,11 @@ import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
+/**
+ * @author 宣炳刚
+ * @date 2017/9/11
+ * @remark 用户相关DAL
+ */
 @Mapper
 public interface UserMapper extends Mapper {
 
@@ -19,8 +24,7 @@ public interface UserMapper extends Mapper {
             @Result(property = "accountId", column = "account_id"),
             @Result(property = "userType", column = "user_type"),
             @Result(property = "builtin", column = "is_builtin"),
-            @Result(property = "invalid", column = "is_invalid"),
-            @Result(property = "createdTime", column = "created_time")
+            @Result(property = "invalid", column = "is_invalid")
     })
     @Select("select * from user where id=#{id};")
     User getUserById(@Param("id") String id);
@@ -37,8 +41,7 @@ public interface UserMapper extends Mapper {
             @Result(property = "accountId", column = "account_id"),
             @Result(property = "userType", column = "user_type"),
             @Result(property = "builtin", column = "is_builtin"),
-            @Result(property = "invalid", column = "is_invalid"),
-            @Result(property = "createdTime", column = "created_time")
+            @Result(property = "invalid", column = "is_invalid")
     })
     @Select("select * from user where application_id=#{appid} and (account=#{account} or mobile=#{account} or email=#{account}) limit 1;")
     User getUserByAccount(@Param("appid") String appId, @Param("account") String account);
@@ -53,23 +56,26 @@ public interface UserMapper extends Mapper {
      * @return 用户数量
      */
     @Select("select count(*) from user where application_id=#{appid} and (account=#{account} or mobile=#{mobile} or email=#{email});")
-    Integer getExistedUserByApp(@Param("appid") String appId, @Param("account") String account, @Param("mobile") String mobile, @Param("email") String email);
+    Integer getExistedUserByApp(@Param("appid") String appId, @Param("account") String account,
+                                @Param("mobile") String mobile, @Param("email") String email);
 
     /**
      * 根据账户ID查询在指定应用下的用户总数
      *
-     * @param appId 应用ID
+     * @param appId     应用ID
+     * @param accountId 账户ID
      * @return 用户总数
      */
-    @Select("select count(*) from user where user_type > 0 and application_id=#{appid};")
-    Integer getUsersCountByApp(@Param("appid") String appId);
+    @Select("select count(*) from user where user_type > 0 and application_id=#{appid} and account_id=#{accountid};")
+    Integer getUsersCountByApp(@Param("appid") String appId, @Param("accountid") String accountId);
 
     /**
      * 根据账户ID查询在指定应用下的用户集合(分页)
      *
-     * @param appId  应用ID
-     * @param offset 偏移量
-     * @param count  最大行数
+     * @param appId     应用ID
+     * @param accountId 账户ID
+     * @param offset    偏移量
+     * @param count     最大行数
      * @return 用户集合
      */
     @Results({
@@ -77,12 +83,13 @@ public interface UserMapper extends Mapper {
             @Result(property = "accountId", column = "account_id"),
             @Result(property = "userType", column = "user_type"),
             @Result(property = "builtin", column = "is_builtin"),
-            @Result(property = "invalid", column = "is_invalid"),
-            @Result(property = "createdTime", column = "created_time")
+            @Result(property = "invalid", column = "is_invalid")
     })
     @Select("select id,application_id,account_id,user_type,`name`,account,mobile,email,remark,is_builtin,is_invalid,created_time " +
-            "from user where user_type > 0 and application_id=#{appid} order by created_time limit #{offset},#{count};")
-    List<User> getUsersByApp(@Param("appid") String appId, @Param("offset") Integer offset, @Param("count") Integer count);
+            "from user where user_type > 0 and application_id=#{appid} and account_id=#{accountid} " +
+            "order by created_time limit #{offset},#{count};")
+    List<User> getUsersByApp(@Param("appid") String appId, @Param("accountid") String accountId,
+                             @Param("offset") Integer offset, @Param("count") Integer count);
 
     /**
      * 根据账户ID查询在指定账户下的用户总数
@@ -106,8 +113,7 @@ public interface UserMapper extends Mapper {
             @Result(property = "accountId", column = "account_id"),
             @Result(property = "userType", column = "user_type"),
             @Result(property = "builtin", column = "is_builtin"),
-            @Result(property = "invalid", column = "is_invalid"),
-            @Result(property = "createdTime", column = "created_time")
+            @Result(property = "invalid", column = "is_invalid")
     })
     @Select("select id,application_id,account_id,user_type,`name`,account,mobile,email,remark,is_builtin,is_invalid,created_time " +
             "from user where user_type > 0 and account_id=#{accountId} order by created_time limit #{offset},#{count};")
@@ -135,8 +141,7 @@ public interface UserMapper extends Mapper {
             @Result(property = "accountId", column = "account_id"),
             @Result(property = "userType", column = "user_type"),
             @Result(property = "builtin", column = "is_builtin"),
-            @Result(property = "invalid", column = "is_invalid"),
-            @Result(property = "createdTime", column = "created_time")
+            @Result(property = "invalid", column = "is_invalid")
     })
     @Select("select u.id,u.application_id,u.account_id,u.user_type,u.`name`,u.account,u.mobile,u.email,u.remark,u.is_builtin,u.is_invalid,u.created_time " +
             "from user u join group_member m on m.user_id=u.id where m.group_id=#{groupid} order by u.created_time limit #{offset},#{count};")
@@ -222,6 +227,5 @@ public interface UserMapper extends Mapper {
      */
     @Update("update user set is_invalid =#{status} where id =#{id};")
     Integer updateStatus(@Param("id") String id, @Param("status") Boolean status);
-
 }
 

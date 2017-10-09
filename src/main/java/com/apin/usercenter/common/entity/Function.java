@@ -1,6 +1,7 @@
 package com.apin.usercenter.common.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author 宣炳刚
@@ -65,6 +66,25 @@ public class Function implements Serializable {
      */
     private String desc;
 
+    /**
+     * 备注
+     */
+    private String remark;
+
+    /**
+     * 是否可见
+     */
+    private Boolean invisible;
+
+    /**
+     * 创建人ID
+     */
+    private String creatorUserId;
+
+    /**
+     * 创建时间
+     */
+    private Date createdTime;
 
     public String getId() {
         return id;
@@ -154,4 +174,35 @@ public class Function implements Serializable {
         this.desc = desc;
     }
 
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public Boolean getInvisible() {
+        return invisible;
+    }
+
+    public void setInvisible(Boolean invisible) {
+        this.invisible = invisible;
+    }
+
+    public String getCreatorUserId() {
+        return creatorUserId;
+    }
+
+    public void setCreatorUserId(String creatorUserId) {
+        this.creatorUserId = creatorUserId;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
 }

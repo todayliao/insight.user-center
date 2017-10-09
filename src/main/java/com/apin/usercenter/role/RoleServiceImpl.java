@@ -7,6 +7,7 @@ import com.apin.usercenter.common.mapper.RoleMapper;
 import com.apin.usercenter.component.Core;
 import com.apin.util.ReplyHelper;
 import com.apin.util.pojo.Reply;
+import com.apin.util.pojo.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,10 +74,11 @@ public class RoleServiceImpl implements RoleService {
      *
      * @param token  访问令牌
      * @param roleId 角色ID
+     * @param secret 验证用的安全码(初始化角色时使用)
      * @return Reply
      */
     @Override
-    public Reply getRole(String token, String roleId) {
+    public Reply getRole(String token, String roleId, String secret) {
         Date now = new Date();
 
         // 验证令牌
@@ -84,6 +86,14 @@ public class RoleServiceImpl implements RoleService {
         Reply reply = verify.compare("ListRoles");
         if (!reply.getSuccess()) return reply;
 
+        if (secret != null) {
+            String userId = redis.opsForValue().get(secret);
+            if (userId == null || !userId.equals(verify.getUserId())) {
+                return ReplyHelper.invalidParam();
+            }
+        }
+
+        // 查询角色数据
         Role role = roleMapper.getRoleById(roleId);
         role.setFunctions(roleMapper.getRoleFunction(verify.getAppId(), roleId));
         role.setMembers(roleMapper.getRoleMember(roleId));
@@ -97,28 +107,41 @@ public class RoleServiceImpl implements RoleService {
     /**
      * 新增角色
      *
-     * @param token 访问令牌
-     * @param role  角色实体数据
+     * @param token  访问令牌
+     * @param role   角色实体数据
+     * @param secret 验证用的安全码(初始化角色时使用)
      * @return Reply
      */
     @Override
     @Transactional
-    public Reply addRole(String token, Role role) {
+    public Reply addRole(String token, Role role, String secret) {
         Date now = new Date();
 
         // 验证令牌
         Verify verify = new Verify(core, redis, token);
         Reply reply = verify.compare("AddRole");
-        if (!reply.getSuccess()) return reply;
+        if (!reply.getSuccess() && secret == null) return reply;
 
+        if (secret != null) {
+            String userId = redis.opsForValue().get(secret);
+            if (userId == null || !userId.equals(verify.getUserId())) {
+                return ReplyHelper.invalidParam();
+            }
+        }
+
+        // 初始化角色数据
         role.setApplicationId(verify.getAppId());
         role.setAccountId(verify.getAccountId());
-        role.setBuiltin(false);
+        role.setBuiltin(secret != null);
         role.setCreatorUserId(verify.getUserId());
         role.setCreatedTime(new Date());
 
+        // 持久化角色对象
         Integer count = roleMapper.addRole(role);
+        if (role.getFunctions() == null) return ReplyHelper.invalidParam("缺少角色授权功能集合");
+
         count += roleMapper.addRoleFunction(role);
+        if (role.getMembers() != null) count += roleMapper.addRoleMember(role.getMembers());
 
         long time = new Date().getTime() - now.getTime();
         logger.info("addRole耗时:" + time + "毫秒...");
@@ -223,5 +246,29 @@ public class RoleServiceImpl implements RoleService {
         logger.info("removeRoleMember耗时:" + time + "毫秒...");
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.error();
+    }
+
+    /**
+     * 获取指定名称的角色的成员用户
+     *
+     * @param token    访问令牌
+     * @param roleName 角色名称
+     * @return Reply
+     */
+    @Override
+    public Reply getRoleUsersByName(String token, String roleName) {
+        Date now = new Date();
+
+        // 验证令牌
+        Verify verify = new Verify(core, redis, token);
+        Reply reply = verify.compare();
+        if (!reply.getSuccess()) return reply;
+
+        List<User> users = roleMapper.getRoleUsersByName(verify.getAppId(), verify.getAccountId(), roleName);
+
+        long time = new Date().getTime() - now.getTime();
+        logger.info("getRoleUsersByName耗时:" + time + "毫秒...");
+
+        return ReplyHelper.success(users);
     }
 }

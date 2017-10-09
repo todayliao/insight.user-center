@@ -2,16 +2,14 @@ package com.apin.usercenter.common.mapper;
 
 import com.apin.usercenter.common.entity.Function;
 import com.apin.usercenter.common.entity.Navigator;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
 /**
  * @author 宣炳刚
  * @date 2017/9/13
- * @remark
+ * @remark 权限相关DAL
  */
 @Mapper
 public interface AuthMapper extends Mapper {
@@ -41,6 +39,7 @@ public interface AuthMapper extends Mapper {
      * @param deptId 登录部门ID
      * @return Navigation对象集合
      */
+    @Results({@Result(property = "groupId", column = "parent_id")})
     @Select("SELECT*FROM (SELECT g.id,NULL AS parent_id,g.`index`,g.`name`,g.icon,NULL AS url FROM module_group g " +
             "JOIN (SELECT m.group_id FROM module m JOIN module_function f ON f.module_id=m.id " +
             "JOIN (SELECT a.function_id FROM role_action a " +
@@ -69,6 +68,7 @@ public interface AuthMapper extends Mapper {
      * @param deptId   登录部门ID
      * @return Function对象集合
      */
+    @Results({@Result(property = "parentId", column = "module_id")})
     @Select("SELECT f.id,f.module_id,f.`index`,f.`name`,f.icon,f.url,a.permit FROM module_function f " +
             "JOIN module m ON m.id=f.module_id JOIN module_group g ON g.id=m.group_id " +
             "LEFT JOIN (SELECT a.function_id,min(a.action) AS permit FROM role_action a " +
@@ -78,5 +78,4 @@ public interface AuthMapper extends Mapper {
             "WHERE p.user_id=#{userid} AND o.parent_id=#{deptid} AND m.type=3) r ON r.role_id=a.role_id " +
             "GROUP BY a.function_id) a ON a.function_id=f.id WHERE f.module_id=#{moduleid} AND f.is_invisible=0;")
     List<Function> getModuleFunctions(@Param("moduleid") String moduleId, @Param("userid") String userId, @Param("deptid") String deptId);
-
 }

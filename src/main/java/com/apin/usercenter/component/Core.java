@@ -3,6 +3,7 @@ package com.apin.usercenter.component;
 import com.apin.usercenter.auth.dto.RefreshToken;
 import com.apin.usercenter.auth.dto.TokenPackage;
 import com.apin.usercenter.common.entity.Function;
+import com.apin.usercenter.common.entity.Token;
 import com.apin.usercenter.common.mapper.AuthMapper;
 import com.apin.usercenter.common.mapper.UserMapper;
 import com.apin.util.Encryptor;
@@ -31,13 +32,14 @@ import java.util.concurrent.TimeUnit;
  */
 @Component()
 public class Core {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private StringRedisTemplate redis;
     @Autowired
     private AuthMapper authMapper;
     @Autowired
     private UserMapper userMapper;
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     // RSA公钥
     private final String publicKey = "";
@@ -379,7 +381,7 @@ public class Core {
      * @return 用户是否存在
      */
     public Boolean isExisted(User user) {
-        return userMapper.getExistedUserByApp("", user.getAccount(), user.getMobile(), user.getEmail()) > 0;
+        return userMapper.getExistedUserByApp(user.getApplicationId(), user.getAccount(), user.getMobile(), user.getEmail()) > 0;
     }
 
     /**
@@ -569,12 +571,19 @@ public class Core {
 
         if (token != null) {
             String mobile = token.getMobile();
-            if (mobile != null && !mobile.isEmpty()) redis.delete(mobile);
+            if (mobile != null && !mobile.isEmpty()) {
+                String key = Generator.md5(token.getAppId() + mobile);
+                redis.delete(key);
+            }
 
             String email = token.getEmail();
-            if (email != null && !email.isEmpty()) redis.delete(email);
+            if (email != null && !email.isEmpty()) {
+                String key = Generator.md5(token.getAppId() + email);
+                redis.delete(key);
+            }
 
-            redis.delete(token.getAccount());
+            String key = Generator.md5(token.getAppId() + token.getAccount());
+            redis.delete(key);
             redis.delete(userId);
         }
 

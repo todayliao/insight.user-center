@@ -10,11 +10,34 @@ import java.io.Serializable;
 public class Member implements Serializable {
     private static final long serialVersionUID = -1L;
 
+    /**
+     * 成员关系ID
+     */
     private String id;
+
+    /**
+     * 成员类型
+     */
     private Integer type;
+
+    /**
+     * 上级ID/角色ID
+     */
     private String parentId;
+
+    /**
+     * 成员ID(根据类型不同)
+     */
     private String memberId;
+
+    /**
+     * 成员名称(根据类型不同)
+     */
     private String name;
+
+    /**
+     * 备注
+     */
     private String remark;
 
     public String getId() {

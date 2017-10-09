@@ -99,15 +99,13 @@ public class AuthController {
      * 获取用户导航栏
      *
      * @param token 访问令牌
-     * @param appId 应用ID
      * @return Reply
      * 正常：返回接口调用成功,通过data返回导航数据集合
      * 异常：无法解析访问令牌、用户不存在、用户失效或令牌失效时返回令牌非法的错误
      */
     @GetMapping("/v1.1/modules")
-    public Reply getNavigators(@RequestHeader("Authorization") String token,
-                               @RequestHeader("Application") String appId) throws Exception {
-        return service.getNavigators(token, appId);
+    public Reply getNavigators(@RequestHeader("Authorization") String token) throws Exception {
+        return service.getNavigators(token);
     }
 
     /**
@@ -129,7 +127,7 @@ public class AuthController {
      * 生成短信验证码
      *
      * @param token   访问令牌
-     * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码)
+     * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码;5:修改手机号)
      * @param mobile  手机号
      * @param length  验证码长度
      * @param minutes 验证码有效时长(分钟)
@@ -148,7 +146,7 @@ public class AuthController {
      * 验证短信验证码
      *
      * @param token   访问令牌
-     * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码)
+     * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码;5:修改手机号)
      * @param mobile  手机号
      * @param code    验证码
      * @param isCheck 是否检验模式(true:检验模式,验证后验证码不失效;false:验证模式,验证后验证码失效)

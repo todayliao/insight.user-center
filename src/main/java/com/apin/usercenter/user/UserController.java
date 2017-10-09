@@ -45,13 +45,15 @@ public class UserController {
     /**
      * 注册用户
      *
-     * @param token 访问令牌
-     * @param user  User实体,来自Body
+     * @param token    访问令牌
+     * @param user     User实体,来自Body
+     * @param initRole 是否初始化角色
      * @return Reply
      */
     @PostMapping("/v1.1/users/signup")
-    public Reply signUp(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
-        return services.signUp(token, user);
+    public Reply signUp(@RequestHeader("Authorization") String token, @RequestBody User user,
+                        @RequestParam(value = "init", defaultValue = "false") Boolean initRole) throws Exception {
+        return services.signUp(token, user, initRole);
     }
 
     /**

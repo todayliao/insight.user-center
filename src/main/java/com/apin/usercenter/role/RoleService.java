@@ -26,18 +26,20 @@ public interface RoleService {
      *
      * @param token  访问令牌
      * @param roleId 角色ID
+     * @param secret 验证用的安全码(初始化角色时使用)
      * @return Reply
      */
-    Reply getRole(String token, String roleId);
+    Reply getRole(String token, String roleId, String secret);
 
     /**
      * 新增角色
      *
-     * @param token 访问令牌
-     * @param role  角色实体数据
+     * @param token  访问令牌
+     * @param role   角色实体数据
+     * @param secret 验证用的安全码(初始化角色时使用)
      * @return Reply
      */
-    Reply addRole(String token, Role role);
+    Reply addRole(String token, Role role, String secret);
 
     /**
      * 删除角色
@@ -74,4 +76,13 @@ public interface RoleService {
      * @return Reply
      */
     Reply removeRoleMember(String token, List<String> list);
+
+    /**
+     * 获取指定名称的角色的成员用户
+     *
+     * @param token    访问令牌
+     * @param roleName 角色名称
+     * @return Reply
+     */
+    Reply getRoleUsersByName(String token, String roleName);
 }
