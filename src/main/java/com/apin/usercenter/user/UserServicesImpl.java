@@ -98,7 +98,8 @@ public class UserServicesImpl implements UserServices {
 
         // 初始化并持久化用户对象
         user.setApplicationId(verify.getAppId());
-        user.setAccountId(verify.getAccountId());
+        if (user.getAccountId() == null || user.getAccountId().isEmpty()) user.setAccountId(verify.getAccountId());
+
         user.setBuiltin(false);
         user.setInvalid(false);
         user.setCreatedTime(new Date());
@@ -317,6 +318,9 @@ public class UserServicesImpl implements UserServices {
 
         // 如更新的是自己的密码，则使用自己的Token，否则使用Token缓存中用户的Token
         Token accessToken = key == null ? verify.getBasis() : core.getToken(user.getId());
+        String old = accessToken.getPassword();
+        if (key == null && !old.equals(user.getOption())) return ReplyHelper.invalidParam("错误的原密码!");
+
         Boolean success = core.setPassword(accessToken, user.getId(), user.getPassword());
 
         long time = new Date().getTime() - now.getTime();

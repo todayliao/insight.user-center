@@ -114,6 +114,10 @@ public class AuthServiceImpl implements AuthService {
 
         if (core.isInvalid(token)) return ReplyHelper.fail("用户被禁止登录");
 
+        String key = Generator.md5(account + token.getPassword());
+        String sign = Generator.md5(key + code);
+        if (!sign.equals(signature)) return ReplyHelper.invalidPassword();
+
         core.initAccessToken(token);
         TokenPackage tokens = core.creatorKey(token, code, deptId);
 

@@ -131,7 +131,8 @@ public class RoleServiceImpl implements RoleService {
 
         // 初始化角色数据
         role.setApplicationId(verify.getAppId());
-        role.setAccountId(verify.getAccountId());
+        if (role.getAccountId() == null || role.getAccountId().isEmpty()) role.setAccountId(verify.getAccountId());
+
         role.setBuiltin(secret != null);
         role.setCreatorUserId(verify.getUserId());
         role.setCreatedTime(new Date());

@@ -22,11 +22,7 @@ public interface RoleMapper extends Mapper {
      * @param appId 应用ID
      * @return 角色集合
      */
-    @Results({
-            @Result(property = "applicationId", column = "application_id"),
-            @Result(property = "accountId", column = "account_id"),
-            @Result(property = "builtin", column = "is_builtin")
-    })
+    @Results({@Result(property = "builtin", column = "is_builtin")})
     @Select("SELECT * FROM role WHERE application_id=#{appid} ORDER BY created_time;")
     List<Role> getRoles(@Param("appid") String appId);
 
@@ -36,11 +32,7 @@ public interface RoleMapper extends Mapper {
      * @param id 角色ID
      * @return 角色实体
      */
-    @Results({
-            @Result(property = "applicationId", column = "application_id"),
-            @Result(property = "accountId", column = "account_id"),
-            @Result(property = "builtin", column = "is_builtin")
-    })
+    @Results({@Result(property = "builtin", column = "is_builtin")})
     @Select("select * from role where id = #{id}")
     Role getRoleById(@Param("id") String id);
 
@@ -51,21 +43,20 @@ public interface RoleMapper extends Mapper {
      * @param roleId 角色ID
      * @return 功能集合
      */
-    @Results({@Result(property = "parentId", column = "parent_id")})
     @Select("SELECT * FROM (" +
             "SELECT g.id,NULL AS parent_id,1 AS type,g.`index`,g.`name`,g.icon,NULL AS url," +
-            "CASE WHEN m.max IS NULL THEN NULL WHEN m.max=m.count THEN 1 ELSE 0 END AS permit FROM module_group g JOIN (" +
+            "CASE WHEN m.max IS NULL THEN NULL WHEN m.max=m.count THEN 1 ELSE 0 END AS action FROM module_group g JOIN (" +
             "SELECT m.group_id,sum(a.action) AS max,count(*) AS count FROM module m " +
             "JOIN module_function f ON f.module_id=m.id AND f.is_invisible=0 " +
             "LEFT JOIN role_action a ON a.function_id=f.id AND role_id=#{id} " +
             "GROUP BY m.group_id) m ON m.group_id=g.id WHERE g.application_id=#{appid} UNION " +
             "SELECT m.id,m.group_id AS parent_id,2 AS type,m.`index`,m.`name`,m.icon,m.url," +
-            "CASE WHEN f.max IS NULL THEN NULL WHEN f.max=f.count THEN 1 ELSE 0 END AS permit FROM module m " +
+            "CASE WHEN f.max IS NULL THEN NULL WHEN f.max=f.count THEN 1 ELSE 0 END AS action FROM module m " +
             "JOIN module_group g ON g.id=m.group_id AND g.application_id=#{appid} JOIN (" +
             "SELECT module_id,sum(a.action) AS max,count(*) AS count FROM module_function f " +
             "LEFT JOIN role_action a ON a.function_id=f.id AND role_id=#{id} " +
             "WHERE f.is_invisible=0 GROUP BY f.module_id) f ON f.module_id=m.id UNION " +
-            "SELECT f.id,module_id AS parent_id,3 AS type,f.`index`,f.`name`,f.icon,f.url,a.action AS permit FROM module_function f " +
+            "SELECT f.id,module_id AS parent_id,3 AS type,f.`index`,f.`name`,f.icon,f.url,a.action FROM module_function f " +
             "JOIN module m ON m.id=f.module_id JOIN module_group g ON g.id=m.group_id AND g.application_id=#{appid} " +
             "LEFT JOIN role_action a ON a.function_id=f.id AND a.role_id=#{id} WHERE f.is_invisible=0) l " +
             "ORDER BY l.parent_id,l.`index`;")
@@ -77,7 +68,6 @@ public interface RoleMapper extends Mapper {
      * @param roleId 角色ID
      * @return 成员集合
      */
-    @Results({@Result(property = "memberId", column = "member_id")})
     @Select("SELECT m.id,m.type,m.member_id,u.`name`,u.remark FROM role_member m JOIN `user` u ON u.id=m.member_id " +
             "WHERE m.type=1 AND m.role_id=#{id} UNION " +
             "SELECT m.id,m.type,m.member_id,g.`name`,g.remark FROM role_member m JOIN `group` g ON g.id=m.member_id " +

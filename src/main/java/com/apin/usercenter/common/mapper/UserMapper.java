@@ -20,9 +20,6 @@ public interface UserMapper extends Mapper {
      * @return 用户实体
      */
     @Results({
-            @Result(property = "applicationId", column = "application_id"),
-            @Result(property = "accountId", column = "account_id"),
-            @Result(property = "userType", column = "user_type"),
             @Result(property = "builtin", column = "is_builtin"),
             @Result(property = "invalid", column = "is_invalid")
     })
@@ -37,9 +34,6 @@ public interface UserMapper extends Mapper {
      * @return 用户实体
      */
     @Results({
-            @Result(property = "applicationId", column = "application_id"),
-            @Result(property = "accountId", column = "account_id"),
-            @Result(property = "userType", column = "user_type"),
             @Result(property = "builtin", column = "is_builtin"),
             @Result(property = "invalid", column = "is_invalid")
     })
@@ -79,9 +73,6 @@ public interface UserMapper extends Mapper {
      * @return 用户集合
      */
     @Results({
-            @Result(property = "applicationId", column = "application_id"),
-            @Result(property = "accountId", column = "account_id"),
-            @Result(property = "userType", column = "user_type"),
             @Result(property = "builtin", column = "is_builtin"),
             @Result(property = "invalid", column = "is_invalid")
     })
@@ -109,9 +100,6 @@ public interface UserMapper extends Mapper {
      * @return 用户集合
      */
     @Results({
-            @Result(property = "applicationId", column = "application_id"),
-            @Result(property = "accountId", column = "account_id"),
-            @Result(property = "userType", column = "user_type"),
             @Result(property = "builtin", column = "is_builtin"),
             @Result(property = "invalid", column = "is_invalid")
     })
@@ -137,9 +125,6 @@ public interface UserMapper extends Mapper {
      * @return 用户集合
      */
     @Results({
-            @Result(property = "applicationId", column = "application_id"),
-            @Result(property = "accountId", column = "account_id"),
-            @Result(property = "userType", column = "user_type"),
             @Result(property = "builtin", column = "is_builtin"),
             @Result(property = "invalid", column = "is_invalid")
     })

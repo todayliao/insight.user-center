@@ -28,10 +28,7 @@ public interface AppMapper extends Mapper {
      * @param appId 应用ID
      * @return 功能集合
      */
-    @Results({
-            @Result(property = "parentId", column = "parent_id"),
-            @Result(property = "invisible", column = "is_invisible")
-    })
+    @Results({@Result(property = "invisible", column = "is_invisible")})
     @Select("SELECT t.* FROM (" +
             "SELECT id,application_id AS parent_id,1 AS type,`index`,`name`,NULL AS alias,icon,NULL AS url,remark,NULL AS is_invisible " +
             "FROM module_group WHERE application_id=#{id} UNION " +

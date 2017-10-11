@@ -69,9 +69,9 @@ public interface AuthMapper extends Mapper {
      * @return Function对象集合
      */
     @Results({@Result(property = "parentId", column = "module_id")})
-    @Select("SELECT f.id,f.module_id,f.`index`,f.`name`,f.icon,f.url,a.permit FROM module_function f " +
+    @Select("SELECT f.id,f.module_id,f.`index`,f.`name`,f.icon,f.url,a.action FROM module_function f " +
             "JOIN module m ON m.id=f.module_id JOIN module_group g ON g.id=m.group_id " +
-            "LEFT JOIN (SELECT a.function_id,min(a.action) AS permit FROM role_action a " +
+            "LEFT JOIN (SELECT a.function_id,min(a.action) AS action FROM role_action a " +
             "JOIN (SELECT m.role_id FROM role_member m WHERE m.member_id=#{userid} AND m.type=1 UNION " +
             "SELECT m.role_id FROM role_member m JOIN group_member g ON g.group_id=m.member_id WHERE g.user_id=#{userid} AND m.type=2 UNION " +
             "SELECT m.role_id FROM role_member m JOIN post_member p ON p.post_id=m.member_id JOIN organization o ON o.id=p.post_id " +

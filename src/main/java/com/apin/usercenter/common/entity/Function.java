@@ -54,11 +54,6 @@ public class Function implements Serializable {
     /**
      * 是否授权(true:已授权,false:已拒绝,null:未授权)
      */
-    private Boolean permit;
-
-    /**
-     * 新的授权状况
-     */
     private Boolean action;
 
     /**
@@ -148,14 +143,6 @@ public class Function implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    public Boolean getPermit() {
-        return permit;
-    }
-
-    public void setPermit(Boolean permit) {
-        this.permit = permit;
     }
 
     public Boolean getAction() {
