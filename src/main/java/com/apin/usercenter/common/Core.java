@@ -1,4 +1,4 @@
-package com.apin.usercenter.component;
+package com.apin.usercenter.common;
 
 import com.apin.usercenter.auth.dto.RefreshToken;
 import com.apin.usercenter.auth.dto.TokenPackage;
@@ -26,48 +26,65 @@ import java.util.concurrent.TimeUnit;
  * @author 宣炳刚
  * @date 2017/9/7
  * @remark 用户身份验证核心类(组件类)
- * @since 1、管理令牌类的缓存
- * @since 2、管理账号-用户ID对应关系缓存
  * @since 3、管理签名-Code对应关系缓存
  */
 @Component()
 public class Core {
-    @Autowired
-    private StringRedisTemplate redis;
-    @Autowired
-    private AuthMapper authMapper;
-    @Autowired
-    private UserMapper userMapper;
+    private final Logger logger;
+    private final StringRedisTemplate redis;
+    private final AuthMapper authMapper;
+    private final UserMapper userMapper;
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    // RSA公钥
-    private final String publicKey = "";
-
-    // RSA私钥
+    /**
+     * RSA私钥
+     */
     private final String privateKey = "";
 
-    // Token允许的超时毫秒数(300秒)
+    /**
+     * Token允许的超时毫秒数(300秒)
+     */
     private final Integer timeOut = 1000 * 300;
+
+    /**
+     * 构造方法
+     *
+     * @param redis      自动注入的StringRedisTemplate
+     * @param authMapper 自动注入的AuthMapper
+     * @param userMapper 自动注入的UserMapper
+     */
+    @Autowired
+    public Core(StringRedisTemplate redis, AuthMapper authMapper, UserMapper userMapper) {
+        this.redis = redis;
+        this.authMapper = authMapper;
+        this.userMapper = userMapper;
+
+        logger = LoggerFactory.getLogger(this.getClass());
+    }
 
     /**
      * 根据用户登录账号获取Account缓存中的用户ID
      *
      * @param appId   应用ID
-     * @param account 登录账号(账号、手机号、E-mail)
+     * @param account 登录账号(账号、手机号、E-mail、openId)
      * @return 用户ID
      */
     public String getUserId(String appId, String account) {
         String key = Generator.md5((appId == null ? "" : appId) + account);
         String userId = redis.opsForValue().get(key);
-        if (userId != null && !userId.isEmpty()) return userId;
+        if (userId != null && !userId.isEmpty()) {
+            return userId;
+        }
 
         synchronized ( this ) {
             userId = redis.opsForValue().get(key);
-            if (userId != null && !userId.isEmpty()) return userId;
+            if (userId != null && !userId.isEmpty()) {
+                return userId;
+            }
 
             User user = userMapper.getUserByAccount(appId, account);
-            if (user == null) return null;
+            if (user == null) {
+                return null;
+            }
 
             Token token = initToken(user);
             setUserIdCache(user);
@@ -81,25 +98,29 @@ public class Core {
      * 生成Code,缓存后返回
      *
      * @param token   Token
+     * @param account 登录账号
      * @param type    登录类型(0:密码登录、1:验证码登录)
-     * @param appName 应用名称
      * @return Code
      */
-    public String generateCode(Token token, int type, String appName) {
+    public String generateCode(Token token, String account, int type) {
         String key;
         int seconds = 3;
         switch (type) {
             case 0:
-                key = Generator.md5(token.getAccount() + token.getPassword());
+                key = Generator.md5(account + token.getPassword());
                 break;
             case 1:
                 // 生成短信验证码(5分钟内有效)并发送
                 String mobile = token.getMobile();
+                if (mobile == null || mobile.isEmpty()) {
+                    return null;
+                }
+
                 String smsCode = generateSmsCode(4, mobile, 5, 4);
-                key = Generator.md5(token.getMobile() + Generator.md5(smsCode));
+                key = Generator.md5(mobile + Generator.md5(smsCode));
                 seconds = 300;
 
-                Message message = initVerifyMessage(appName, mobile, smsCode);
+                Message message = initVerifyMessage(mobile, smsCode);
                 SmsUtils.sendSms(message);
                 break;
             default:
@@ -113,6 +134,7 @@ public class Core {
 
         // 缓存Code,签名作为key
         redis.opsForValue().set(signature, code, seconds, TimeUnit.SECONDS);
+        redis.opsForValue().set(code, token.getUserId());
 
         return code;
     }
@@ -130,7 +152,9 @@ public class Core {
         String code = randomString(length);
         logger.info("为手机号【" + mobile + "】生成了类型为" + type + "的验证码:" + code + ",有效时间:" + minutes + "分钟.");
         String key = Generator.md5(type + mobile + code);
-        if (type == 4) return code;
+        if (type == 4) {
+            return code;
+        }
 
         redis.opsForValue().set(key, code, minutes, TimeUnit.MINUTES);
         return code;
@@ -144,7 +168,9 @@ public class Core {
      */
     public String getCode(String sign) {
         String code = redis.opsForValue().get(sign);
-        if (code == null || code.isEmpty()) return null;
+        if (code == null || code.isEmpty()) {
+            return null;
+        }
 
         redis.delete(sign);
         return code;
@@ -158,7 +184,9 @@ public class Core {
      */
     public Token getToken(String userId) {
         String json = redis.opsForValue().get(userId);
-        if (json == null || json.isEmpty()) return null;
+        if (json == null || json.isEmpty()) {
+            return null;
+        }
 
         return JsonUtils.toBean(json, Token.class);
     }
@@ -174,10 +202,14 @@ public class Core {
     public Boolean verifyToken(Token token, String key, int type) {
         switch (type) {
             case 1:
-                if (token.getSecretKey().equals(key)) return true;
+                if (token.getSecretKey().equals(key)) {
+                    return true;
+                }
 
             case 2:
-                if (token.getRefreshKey().equals(key)) return true;
+                if (token.getRefreshKey().equals(key)) {
+                    return true;
+                }
 
             default:
                 break;
@@ -196,7 +228,9 @@ public class Core {
      * @return PayPassword是否正确
      */
     public Boolean verifyPayPassword(Token token, String key) {
-        if (token.getPayPassword() == null) return null;
+        if (token.getPayPassword() == null) {
+            return null;
+        }
 
         String pw = Generator.md5(token.getUserId() + key);
         return token.getPayPassword().equals(pw);
@@ -214,7 +248,9 @@ public class Core {
     public Boolean verifySmsCode(int type, String mobile, String code, Boolean isCheck) {
         String key = Generator.md5(type + mobile + code);
         Boolean isExisted = redis.hasKey(key);
-        if (!isExisted || isCheck) return isExisted;
+        if (!isExisted || isCheck) {
+            return isExisted;
+        }
 
         redis.delete(key);
         return true;
@@ -241,6 +277,9 @@ public class Core {
      */
     public TokenPackage creatorKey(Token token, String id, String deptId) {
         token.setFailureCount(0);
+        if (token.getUserType() > 0) {
+            token.putCode(id);
+        }
 
         AccessToken accessToken = new AccessToken();
         accessToken.setId(id);
@@ -294,6 +333,7 @@ public class Core {
                     token.setRefreshKey(refreshKey);
                     token.setExpiryTime(expiryTime);
                     token.setFailureTime(failureTime);
+                    token.clearlCodes();
                 } else if (isExpiry(token)) {
                     refreshToken(token);
                 }
@@ -301,6 +341,7 @@ public class Core {
         } else if (isExpiry(token)) {
             refreshToken(token);
         }
+
         setTokenCache(token);
     }
 
@@ -311,7 +352,9 @@ public class Core {
      */
     public Date refreshToken(Token token) {
         Date now = new Date();
-        if (now.before(token.getExpiryTime())) return new Date(token.getExpiryTime().getTime() - timeOut);
+        if (now.before(token.getExpiryTime())) {
+            return new Date(token.getExpiryTime().getTime() - timeOut);
+        }
 
         Date expiryTime = new Date(now.getTime() + 1000 * 3600 * 2 + timeOut);
         token.setExpiryTime(expiryTime);
@@ -371,7 +414,7 @@ public class Core {
     public Boolean isPermit(String appId, String userId, String deptId, String function) {
         List<Function> functions = authMapper.getAllFunctions(appId, userId, deptId);
 
-        return functions.stream().filter(i -> function.equals(i.getId()) || function.equals(i.getAlias()) || function.equals(i.getUrl())).count() > 0;
+        return functions.stream().filter(i -> function.equals(i.getId()) || function.equals(i.getAlias()) || asStringList(i.getUrl()).contains(function)).count() > 0;
     }
 
     /**
@@ -381,7 +424,7 @@ public class Core {
      * @return 用户是否存在
      */
     public Boolean isExisted(User user) {
-        return userMapper.getExistedUserByApp(user.getApplicationId(), user.getAccount(), user.getMobile(), user.getEmail()) > 0;
+        return userMapper.getExistedUserByApp(user.getApplicationId(), user.getAccount(), user.getMobile(), user.getEmail(), user.getOpenId()) > 0;
     }
 
     /**
@@ -395,7 +438,9 @@ public class Core {
      */
     public Boolean setUserInfo(Token token, String userId, String userName, String remark) {
         Integer count = userMapper.updateUserInfo(userId, userName, remark);
-        if (count <= 0) return false;
+        if (count <= 0) {
+            return false;
+        }
 
         if (token != null) {
             token.setUserName(userName);
@@ -414,11 +459,15 @@ public class Core {
      * @return 是否更新成功
      */
     public Boolean setUserType(Token token, String userId, Integer userType) {
-        if (token != null && token.getUserType().equals(userType)) return true;
+        if (token != null && token.getUserType().equals(userType)) {
+            return true;
+        }
 
         // 保存用户类型到数据库
         Integer count = userMapper.updateUserType(userId, userType);
-        if (count <= 0) return false;
+        if (count <= 0) {
+            return false;
+        }
 
         if (token != null) {
             token.setUserType(userType);
@@ -437,17 +486,25 @@ public class Core {
      */
     public Boolean setMobile(Token token, String mobile) {
         String key = token.getMobile();
-        if (key != null && key.equals(mobile)) return true;
+        if (key != null && key.equals(mobile)) {
+            return true;
+        }
 
         // 保存数据到数据库
         Integer count = userMapper.updateAccount(token.getUserId(), mobile, token.getEmail());
-        if (count <= 0) return false;
+        if (count <= 0) {
+            return false;
+        }
 
-        if (key != null && !key.isEmpty()) redis.delete(key);
+        if (key != null && !key.isEmpty()) {
+            redis.delete(key);
+        }
 
         token.setMobile(mobile);
         setTokenCache(token);
-        if (mobile != null && !mobile.isEmpty()) redis.opsForValue().set(mobile, token.getUserId());
+        if (mobile != null && !mobile.isEmpty()) {
+            redis.opsForValue().set(mobile, token.getUserId());
+        }
 
         return true;
     }
@@ -461,17 +518,25 @@ public class Core {
      */
     public Boolean setEmail(Token token, String email) {
         String key = token.getEmail();
-        if (key != null && key.equals(email)) return true;
+        if (key != null && key.equals(email)) {
+            return true;
+        }
 
         // 保存数据到数据库
         Integer count = userMapper.updateAccount(token.getUserId(), token.getMobile(), email);
-        if (count <= 0) return false;
+        if (count <= 0) {
+            return false;
+        }
 
-        if (key != null && !key.isEmpty()) redis.delete(key);
+        if (key != null && !key.isEmpty()) {
+            redis.delete(key);
+        }
 
         token.setEmail(email);
         setTokenCache(token);
-        if (email != null && !email.isEmpty()) redis.opsForValue().set(email, token.getUserId());
+        if (email != null && !email.isEmpty()) {
+            redis.opsForValue().set(email, token.getUserId());
+        }
 
         return true;
     }
@@ -486,11 +551,15 @@ public class Core {
      */
     public Boolean setPassword(Token token, String userId, String password) {
         String key = password.length() > 32 ? Encryptor.rsaDecrypt(password, privateKey) : password;
-        if (token != null && token.getPassword() != null && token.getPassword().equals(key)) return true;
+        if (token != null && token.getPassword() != null && token.getPassword().equals(key)) {
+            return true;
+        }
 
         // 保存密码到数据库
         Integer count = userMapper.updatePassword(userId, password);
-        if (count <= 0) return false;
+        if (count <= 0) {
+            return false;
+        }
 
         if (token != null) {
             token.setPassword(key);
@@ -510,11 +579,15 @@ public class Core {
     public Boolean setPayPassword(Token token, String payPassword) {
         String key = Generator.md5(token.getUserId() + payPassword);
         String pw = token.getPayPassword();
-        if (pw != null && pw.equals(key)) return true;
+        if (pw != null && pw.equals(key)) {
+            return true;
+        }
 
         // 保存支付密码到数据库
         Integer count = userMapper.updatePayPassword(token.getUserId(), key);
-        if (count <= 0) return false;
+        if (count <= 0) {
+            return false;
+        }
 
         token.setPayPassword(key);
         setTokenCache(token);
@@ -530,11 +603,15 @@ public class Core {
      * @return 是否更新成功
      */
     public Boolean setInvalidStatus(Token token, String userId, Boolean isInvalid) {
-        if (token != null && token.getInvalid().equals(isInvalid)) return true;
+        if (token != null && token.getInvalid().equals(isInvalid)) {
+            return true;
+        }
 
         // 保存用户失效状态到数据库
         Integer count = userMapper.updateStatus(userId, isInvalid);
-        if (count <= 0) return false;
+        if (count <= 0) {
+            return false;
+        }
 
         if (token != null) {
             token.setInvalid(isInvalid);
@@ -567,7 +644,9 @@ public class Core {
      */
     public Boolean deleteUser(Token token, String userId) {
         Integer count = userMapper.deleteUserById(userId);
-        if (count <= 0) return false;
+        if (count <= 0) {
+            return false;
+        }
 
         if (token != null) {
             String mobile = token.getMobile();
@@ -588,6 +667,21 @@ public class Core {
         }
 
         return true;
+    }
+
+    /**
+     * 累计失败次数(有效时)
+     *
+     * @param token Token
+     */
+    public void addFailureCount(Token token) {
+        if (isInvalid(token)) {
+            return;
+        }
+
+        token.setFailureCount(token.getFailureCount() + 1);
+        token.setLastConnectTime(new Date());
+        setTokenCache(token);
     }
 
     /**
@@ -617,17 +711,6 @@ public class Core {
     }
 
     /**
-     * 累计失败次数
-     *
-     * @param token Token
-     */
-    private void addFailureCount(Token token) {
-        if (isInvalid(token)) return;
-
-        token.setFailureCount(1);
-    }
-
-    /**
      * 缓存用户ID到Redis
      *
      * @param user User
@@ -645,6 +728,12 @@ public class Core {
         String mail = user.getEmail();
         if (mail != null && !mail.isEmpty()) {
             key = Generator.md5(appId + mail);
+            redis.opsForValue().set(key, userId);
+        }
+
+        String openId = user.getOpenId();
+        if (openId != null && !openId.isEmpty()) {
+            key = Generator.md5(appId + openId);
             redis.opsForValue().set(key, userId);
         }
 
@@ -682,22 +771,29 @@ public class Core {
     /**
      * 初始化登录验证码消息实体
      *
-     * @param appName 应用名称
-     * @param mobile  手机号
-     * @param code    验证码
+     * @param mobile 手机号
+     * @param code   验证码
      * @return Message消息实体
      */
-    private Message initVerifyMessage(String appName, String mobile, String code) {
-        Map<String, String> map = new HashMap<>();
-        map.put("product", appName);
+    private Message initVerifyMessage(String mobile, String code) {
+        Map<String, String> map = new HashMap<>(1);
         map.put("code", code);
 
         Message message = new Message();
-        message.setTemplate("SMS_97945028");
+        message.setTemplate("SMS_102865037");
         message.setParams(map);
-        message.setReceivers(mobile);
+        message.setReceiverString(mobile);
 
         return message;
     }
 
+    /**
+     * 逗号分隔字符串转String集合
+     *
+     * @param str 逗号分隔字符串
+     * @return String集合
+     */
+    private List<String> asStringList(String str) {
+        return Arrays.asList((str == null ? "" : str).split(","));
+    }
 }
