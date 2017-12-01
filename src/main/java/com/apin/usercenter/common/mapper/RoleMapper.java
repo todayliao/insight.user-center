@@ -47,7 +47,7 @@ public interface RoleMapper extends Mapper {
             "SELECT g.id,NULL AS parent_id,1 AS type,g.`index`,g.`name`,g.icon,NULL AS url," +
             "CASE WHEN m.max IS NULL THEN NULL WHEN m.max=m.count THEN 1 ELSE 0 END AS action FROM module_group g JOIN (" +
             "SELECT m.group_id,sum(a.action) AS max,count(*) AS count FROM module m " +
-            "JOIN module_function f ON f.module_id=m.id AND f.is_invisible=0 " +
+            "JOIN module_function f ON f.module_id=m.id " +
             "LEFT JOIN role_action a ON a.function_id=f.id AND role_id=#{id} " +
             "GROUP BY m.group_id) m ON m.group_id=g.id WHERE g.application_id=#{appid} UNION " +
             "SELECT m.id,m.group_id AS parent_id,2 AS type,m.`index`,m.`name`,m.icon,m.url," +
@@ -74,7 +74,17 @@ public interface RoleMapper extends Mapper {
             "WHERE m.type=2 AND m.role_id=#{id} UNION " +
             "SELECT m.id,m.type,m.member_id,o.`name`,o.remark FROM role_member m JOIN organization o ON o.id=m.member_id " +
             "WHERE m.type=3 AND m.role_id=#{id};")
-    List<Member> getRoleMember(@Param("id") String roleId);
+    List<Member> getRoleMember(String roleId);
+
+    /**
+     * 获取指定账户下的指定名称的角色数量
+     *
+     * @param accountId 账户ID
+     * @param name      角色名称
+     * @return 角色数量
+     */
+    @Select("SELECT COUNT(*) FROM role WHERE account_id=#{id} AND `name`=#{name};")
+    Integer getRoleCount(@Param("id") String accountId, @Param("name") String name);
 
     /**
      * 新增角色
@@ -82,8 +92,8 @@ public interface RoleMapper extends Mapper {
      * @param role 角色实体
      * @return 受影响行数
      */
-    @Insert("INSERT role (id,application_id,account_id,`name`,remark,is_builtin,creator_user_id,created_time) " +
-            "VALUES (#{id},#{applicationId},#{accountId},#{name},#{remark},#{builtin},#{creatorUserId},#{createdTime});")
+    @Insert("INSERT role (id,application_id,account_id,`name`,remark,is_builtin,creator_user_id) " +
+            "VALUES (#{id},#{applicationId},#{accountId},#{name},#{remark},#{builtin},#{creatorUserId});")
     Integer addRole(Role role);
 
     /**
@@ -141,6 +151,25 @@ public interface RoleMapper extends Mapper {
     /**
      * 移除角色成员
      *
+     * @param roleId 角色ID
+     * @param userId 用户ID
+     * @return 受影响行数
+     */
+    @Delete("delete from role_member where role_id=#{roleId} and member_id=#{userId};")
+    Integer removeRoleMember(@Param("roleId") String roleId, @Param("userId") String userId);
+
+    /**
+     * 移除角色成员
+     *
+     * @param userId 用户ID
+     * @return 受影响行数
+     */
+    @Delete("delete from role_member where member_id=#{userId};")
+    Integer removeRoleMemberByUserId(@Param("userId") String userId);
+
+    /**
+     * 批量移除角色成员
+     *
      * @param list ID集合
      * @return 受影响行数
      */
@@ -148,7 +177,7 @@ public interface RoleMapper extends Mapper {
             "<foreach collection = \"list\" item = \"item\" index = \"index\" open=\"(\" close=\")\" separator = \",\"> " +
             "#{item} " +
             "</foreach></script>")
-    Integer removeRoleMember(List<String> list);
+    Integer removeRoleMembers(List<String> list);
 
     /**
      * 获取指定名称的角色的成员用户

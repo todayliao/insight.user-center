@@ -2,6 +2,7 @@ package com.apin.usercenter.common.entity;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author 宣炳刚
@@ -67,7 +68,17 @@ public class Function implements Serializable {
     private String remark;
 
     /**
-     * 是否可见
+     * 是否开始分组
+     */
+    private Boolean beginGroup;
+
+    /**
+     * 是否隐藏文字
+     */
+    private Boolean hideText;
+
+    /**
+     * 是否不可见
      */
     private Boolean invisible;
 
@@ -80,6 +91,11 @@ public class Function implements Serializable {
      * 创建时间
      */
     private Date createdTime;
+
+    /**
+     * 接口URL集合
+     */
+    private List<String> urls;
 
     public String getId() {
         return id;
@@ -169,6 +185,22 @@ public class Function implements Serializable {
         this.remark = remark;
     }
 
+    public Boolean getBeginGroup() {
+        return beginGroup;
+    }
+
+    public void setBeginGroup(Boolean beginGroup) {
+        this.beginGroup = beginGroup;
+    }
+
+    public Boolean getHideText() {
+        return hideText;
+    }
+
+    public void setHideText(Boolean hideText) {
+        this.hideText = hideText;
+    }
+
     public Boolean getInvisible() {
         return invisible;
     }
@@ -191,5 +223,13 @@ public class Function implements Serializable {
 
     public void setCreatedTime(Date createdTime) {
         this.createdTime = createdTime;
+    }
+
+    public List<String> getUrls() {
+        return urls;
+    }
+
+    public void setUrls(List<String> urls) {
+        this.urls = urls;
     }
 }

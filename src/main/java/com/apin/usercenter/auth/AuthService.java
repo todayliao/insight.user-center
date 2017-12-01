@@ -1,6 +1,10 @@
 package com.apin.usercenter.auth;
 
+import com.apin.usercenter.auth.dto.RefreshToken;
+import com.apin.util.pojo.AccessToken;
 import com.apin.util.pojo.Reply;
+
+import java.io.IOException;
 
 
 /**
@@ -16,10 +20,9 @@ public interface AuthService {
      * @param appId   应用ID
      * @param account 用户登录账号
      * @param type    登录类型(0:密码登录、1:验证码登录)
-     * @param appName 应用名称
      * @return Reply
      */
-    Reply getCode(String appId, String account, int type, String appName);
+    Reply getCode(String appId, String account, int type);
 
     /**
      * 获取Token数据
@@ -33,12 +36,22 @@ public interface AuthService {
     Reply getToken(String appId, String account, String signature, String deptId);
 
     /**
+     * 获取Token
+     *
+     * @param appId  应用ID
+     * @param openId 微信openId
+     * @return Reply
+     * 正常：返回接口调用成功,通过data返回Token数据
+     */
+    Reply getTokenByOpenId(String appId, String openId);
+
+    /**
      * 刷新访问令牌过期时间
      *
      * @param token 刷新令牌字符串
      * @return Reply
      */
-    Reply refreshToken(String token);
+    Reply refreshToken(RefreshToken token);
 
     /**
      * 用户身份验证及鉴权(需要传入function)
@@ -78,25 +91,40 @@ public interface AuthService {
     /**
      * 生成短信验证码
      *
-     * @param token   访问令牌
      * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码;5:修改手机号)
-     * @param mobile  手机号
+     * @param key     手机号或手机号+验证答案的Hash值
      * @param minutes 验证码有效时长(分钟)
      * @param length  验证码长度
      * @return Reply
      */
-    Reply getSmsCode(String token, int type, String mobile, int minutes, int length);
+    Reply getSmsCode(int type, String key, int minutes, int length);
 
     /**
      * 验证短信验证码
      *
-     * @param token   访问令牌
      * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码;5:修改手机号)
      * @param mobile  手机号
      * @param code    验证码
      * @param isCheck 是否检验模式(true:检验模式,验证后验证码不失效;false:验证模式,验证后验证码失效)
      * @return Reply
      */
-    Reply verifySmsCode(String token, int type, String mobile, String code, Boolean isCheck);
+    Reply verifySmsCode(int type, String mobile, String code, Boolean isCheck);
 
+    /**
+     * 获取图形验证图片
+     *
+     * @param token  访问令牌
+     * @param mobile 手机号
+     * @return Reply
+     * @throws IOException
+     */
+    Reply getVerifyPic(AccessToken token, String mobile) throws IOException;
+
+    /**
+     * 验证图形验证答案
+     *
+     * @param key 手机号+验证答案的Hash值
+     * @return Reply
+     */
+    Reply verifyPicCode(String key);
 }

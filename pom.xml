@@ -62,11 +62,17 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <!-- optional=true,依赖不会传递，该项目依赖devtools；之后依赖myboot项目的项目如果想要使用devtools，需要重新引入 -->
+            <optional>true</optional>
+        </dependency>
 
         <dependency>
             <groupId>com.apin</groupId>
             <artifactId>apin-util</artifactId>
-            <version>0.1.2.sp2</version>
+            <version>0.1.6.rc30</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -101,6 +107,11 @@
             <artifactId>commons-io</artifactId>
             <version>2.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.12</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -120,6 +131,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <fork>true</fork>
+                </configuration>
             </plugin>
         </plugins>
 
@@ -153,6 +167,9 @@
             <properties>
                 <profiles.active>local</profiles.active>
             </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
         </profile>
         <profile>
             <!-- 开发环境 -->
@@ -160,9 +177,27 @@
             <properties>
                 <profiles.active>dev</profiles.active>
             </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+        </profile>
+        <profile>
+            <!-- 开发环境 -->
+            <id>dev233</id>
+            <properties>
+                <profiles.active>dev233</profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <!-- 开发环境 -->
+            <id>devtest</id>
+            <properties>
+                <profiles.active>devtest</profiles.active>
+            </properties>
+        </profile>
+        <profile>
+            <!-- 开发环境 -->
+            <id>devtestusermodule</id>
+            <properties>
+                <profiles.active>devtestusermodule</profiles.active>
+            </properties>
         </profile>
         <profile>
             <!-- 测试环境 -->
@@ -180,9 +215,9 @@
         </profile>
         <profile>
             <!-- 生产环境 -->
-            <id>prod</id>
+            <id>pro</id>
             <properties>
-                <profiles.active>prod</profiles.active>
+                <profiles.active>pro</profiles.active>
             </properties>
         </profile>
     </profiles>

@@ -2,6 +2,8 @@ package com.apin.usercenter.role;
 
 import com.apin.usercenter.common.entity.Member;
 import com.apin.usercenter.common.entity.Role;
+import com.apin.util.JsonUtils;
+import com.apin.util.pojo.AccessToken;
 import com.apin.util.pojo.Reply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,87 +25,105 @@ public class RoleController {
      * 获取指定应用的全部角色
      *
      * @param token 访问令牌
+     * @param appId 应用ID
      * @return Reply
      */
     @GetMapping("/v1.1/roles")
-    public Reply getRoles(@RequestHeader("Authorization") String token) throws Exception {
-        return service.getRoles(token);
+    public Reply getRoles(@RequestHeader("Authorization") String token, @RequestParam(value = "appid", required = false) String appId) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return service.getRoles(accessToken, appId);
     }
 
     /**
      * 获取指定的角色
      *
-     * @param token 访问令牌
      * @param roleId 角色ID
-     * @param secret 验证用的安全码(初始化角色时使用)
      * @return Reply
      */
     @GetMapping("/v1.1/roles/{id}")
-    public Reply getRole(@RequestHeader("Authorization") String token, @PathVariable("id") String roleId,
-                         @RequestParam(required = false) String secret) throws Exception {
-        return service.getRole(token, roleId, secret);
+    public Reply getRole(@PathVariable("id") String roleId) {
+        return service.getRole(roleId);
     }
 
     /**
      * 新增角色
      *
-     * @param token  访问令牌
-     * @param role   角色实体数据
-     * @param secret 验证用的安全码(初始化角色时使用)
+     * @param token 访问令牌
+     * @param role  角色实体数据
      * @return Reply
      */
     @PostMapping("/v1.1/roles")
-    public Reply addRole(@RequestHeader("Authorization") String token, @RequestBody Role role,
-                         @RequestParam(required = false) String secret) throws Exception {
-        return service.addRole(token, role, secret);
+    public Reply addRole(@RequestHeader("Authorization") String token, @RequestBody Role role) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return service.addRole(accessToken, role);
     }
 
     /**
      * 删除角色
      *
-     * @param token  访问令牌
      * @param roleId 角色ID
      * @return Reply
      */
     @DeleteMapping("/v1.1/roles/{id}")
-    public Reply deleteRole(@RequestHeader("Authorization") String token, @PathVariable("id") String roleId) throws Exception {
-        return service.deleteRole(token, roleId);
+    public Reply deleteRole(@PathVariable("id") String roleId) {
+        return service.deleteRole(roleId);
     }
 
     /**
      * 更新角色数据
      *
-     * @param token 访问令牌
-     * @param role  角色实体数据
+     * @param role 角色实体数据
      * @return Reply
      */
     @PutMapping("/v1.1/roles/{id}")
-    public Reply updateRole(@RequestHeader("Authorization") String token, @RequestBody Role role) throws Exception {
-        return service.updateRole(token, role);
+    public Reply updateRole(@RequestBody Role role) {
+        return service.updateRole(role);
     }
 
     /**
      * 添加角色成员
      *
-     * @param token   访问令牌
      * @param members 成员集合
      * @return Reply
      */
     @PostMapping("/v1.1/roles/{id}/members")
-    public Reply addRoleMember(@RequestHeader("Authorization") String token, @RequestBody List<Member> members) throws Exception {
-        return service.addRoleMember(token, members);
+    public Reply addRoleMember(@RequestBody List<Member> members) {
+        return service.addRoleMember(members);
     }
 
     /**
      * 移除角色成员
      *
-     * @param token 访问令牌
-     * @param list  成员关系ID集合
+     * @param userId 用户ID
+     * @return Reply
+     * @Auth 郑昊
+     */
+    @DeleteMapping("/v1.1/roles/members/{userid}")
+    public Reply removeRoleMember(@PathVariable("userid") String userId) {
+        return service.removeRoleMemberByUserId(userId);
+    }
+
+    /**
+     * 移除角色成员
+     *
+     * @param roleId 角色ID
+     * @param userId 用户ID
+     * @return Reply
+     */
+    @DeleteMapping("/v1.1/roles/{id}/members/{userid}")
+    public Reply removeRoleMember(@PathVariable("id") String roleId, @PathVariable("userid") String userId) {
+        return service.removeRoleMember(roleId, userId);
+    }
+
+    /**
+     * 批量移除角色成员
+     *
+     * @param list 成员关系ID集合
      * @return Reply
      */
     @DeleteMapping("/v1.1/roles/{id}/members")
-    public Reply removeRoleMember(@RequestHeader("Authorization") String token, @RequestBody List<String> list) throws Exception {
-        return service.removeRoleMember(token, list);
+    public Reply removeRoleMembers(@RequestBody List<String> list) {
+        return service.removeRoleMembers(list);
     }
 
     /**
@@ -114,7 +134,8 @@ public class RoleController {
      * @return Reply
      */
     @GetMapping("/v1.1/roles/{name}/users")
-    public Reply getRoleUsersByName(@RequestHeader("Authorization") String token, @PathVariable("name") String roleName) throws Exception {
-        return service.getRoleUsersByName(token, roleName);
+    public Reply getRoleUsersByName(@RequestHeader("Authorization") String token, @PathVariable("name") String roleName) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return service.getRoleUsersByName(accessToken, roleName);
     }
 }

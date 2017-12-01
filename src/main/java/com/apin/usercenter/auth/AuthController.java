@@ -1,8 +1,13 @@
 package com.apin.usercenter.auth;
 
+import com.apin.usercenter.auth.dto.RefreshToken;
+import com.apin.util.JsonUtils;
+import com.apin.util.pojo.AccessToken;
 import com.apin.util.pojo.Reply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 /**
  * @author 宣炳刚
@@ -21,15 +26,14 @@ public class AuthController {
      * @param appId   应用ID
      * @param account 用户登录账号
      * @param type    登录类型(0:密码登录、1:验证码登录)
-     * @param appName 应用名称(只在验证码登录时需要)
      * @return Reply
      * 正常：返回接口调用成功,通过data返回Code
      * 异常：查找不到用户时返回用户账号不存在的错误
      */
     @GetMapping("/v1.1/tokens/codes")
     public Reply getCode(@RequestParam(value = "appid", required = false) String appId, @RequestParam String account,
-                         @RequestParam(defaultValue = "0") int type, @RequestParam(required = false) String appName) throws Exception {
-        return service.getCode(appId, account, type, appName);
+                         @RequestParam(defaultValue = "0") int type) {
+        return service.getCode(appId, account, type);
     }
 
     /**
@@ -46,8 +50,22 @@ public class AuthController {
      */
     @GetMapping(value = "/v1.1/tokens")
     public Reply getToken(@RequestParam(value = "appid", required = false) String appId, @RequestParam String account,
-                          @RequestParam String signature, @RequestParam(required = false) String deptId) throws Exception {
+                          @RequestParam String signature, @RequestParam(required = false) String deptId) {
         return service.getToken(appId, account, signature, deptId);
+    }
+
+    /**
+     * 获取Token
+     *
+     * @param appId  应用ID
+     * @param openId 微信openId
+     * @return Reply
+     * 正常：返回接口调用成功,通过data返回Token数据
+     */
+    @GetMapping(value = "/v1.1/tokens/{openid}")
+    public Reply getTokenByOpenId(@RequestParam(value = "appid", required = false) String appId,
+                                  @PathVariable("openid") String openId) {
+        return service.getTokenByOpenId(appId, openId);
     }
 
     /**
@@ -60,8 +78,9 @@ public class AuthController {
      * 异常：请求间隔低于5分钟时返回请求过于频繁的错误
      */
     @PutMapping(value = "/v1.1/tokens")
-    public Reply refreshToken(@RequestHeader("Authorization") String token) throws Exception {
-        return service.refreshToken(token);
+    public Reply refreshToken(@RequestHeader("Authorization") String token) {
+        RefreshToken refreshToken = JsonUtils.toBeanFromBase64(token, RefreshToken.class);
+        return service.refreshToken(refreshToken);
     }
 
     /**
@@ -76,7 +95,7 @@ public class AuthController {
      */
     @GetMapping("/v1.1/tokens/secret")
     public Reply verifyToken(@RequestHeader("Authorization") String token,
-                             @RequestParam(value = "function", required = false) String function) throws Exception {
+                             @RequestParam(value = "function", required = false) String function) {
         return service.verifyToken(token, function);
     }
 
@@ -90,8 +109,7 @@ public class AuthController {
      * 异常：无法解析访问令牌、用户不存在、用户失效或令牌失效时返回令牌非法的错误
      */
     @GetMapping("/v1.1/tokens/paypw")
-    public Reply verifyPayPassword(@RequestHeader("Authorization") String token,
-                                   @RequestParam("paypw") String payPassword) throws Exception {
+    public Reply verifyPayPassword(@RequestHeader("Authorization") String token, @RequestParam("paypw") String payPassword) {
         return service.verifyPayPassword(token, payPassword);
     }
 
@@ -104,7 +122,7 @@ public class AuthController {
      * 异常：无法解析访问令牌、用户不存在、用户失效或令牌失效时返回令牌非法的错误
      */
     @GetMapping("/v1.1/modules")
-    public Reply getNavigators(@RequestHeader("Authorization") String token) throws Exception {
+    public Reply getNavigators(@RequestHeader("Authorization") String token) {
         return service.getNavigators(token);
     }
 
@@ -118,34 +136,31 @@ public class AuthController {
      * 异常：无法解析访问令牌、用户不存在、用户失效或令牌失效时返回令牌非法的错误
      */
     @GetMapping("/v1.1/modules/{id}/functions")
-    public Reply getModuleFunctions(@RequestHeader("Authorization") String token,
-                                    @PathVariable("id") String moduleId) throws Exception {
+    public Reply getModuleFunctions(@RequestHeader("Authorization") String token, @PathVariable("id") String moduleId) {
         return service.getModuleFunctions(token, moduleId);
     }
 
     /**
      * 生成短信验证码
      *
-     * @param token   访问令牌
      * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码;5:修改手机号)
-     * @param mobile  手机号
+     * @param key     手机号或手机号+验证答案的Hash值
      * @param length  验证码长度
      * @param minutes 验证码有效时长(分钟)
      * @return Reply
      * 正常：返回接口调用成功,通过data返回验证码
      * 异常：一个手机号同类型请求间隔低于1分钟时返回请求过于频繁的错误
      */
-    @GetMapping("/v1.1/smscodes/{type}/{mobile}")
-    public Reply getSmsCode(@RequestHeader("Authorization") String token, @PathVariable("type") int type,
-                            @PathVariable("mobile") String mobile, @RequestParam("minutes") int minutes,
-                            @RequestParam(value = "length", defaultValue = "6") int length) throws Exception {
-        return service.getSmsCode(token, type, mobile, minutes, length);
+    @GetMapping("/v1.1/smscodes/{type}/{key}")
+    public Reply getSmsCode(@PathVariable("type") int type,
+                            @PathVariable("key") String key, @RequestParam("minutes") int minutes,
+                            @RequestParam(value = "length", defaultValue = "6") int length) {
+        return service.getSmsCode(type, key, minutes, length);
     }
 
     /**
      * 验证短信验证码
      *
-     * @param token   访问令牌
      * @param type    验证码类型(0:验证手机号;1:注册用户账号;2:重置密码;3:修改支付密码;4:登录验证码;5:修改手机号)
      * @param mobile  手机号
      * @param code    验证码
@@ -154,10 +169,31 @@ public class AuthController {
      * 正常：根据验证结果返回接口调用成功或验证码错误的错误
      */
     @DeleteMapping("/v1.1/smscodes/{type}/{mobile}/{code}")
-    public Reply verifySmsCode(@RequestHeader("Authorization") String token, @PathVariable("type") int type,
-                               @PathVariable("mobile") String mobile, @PathVariable("code") String code,
-                               @RequestParam(value = "check", defaultValue = "false") Boolean isCheck) throws Exception {
-        return service.verifySmsCode(token, type, mobile, code, isCheck);
+    public Reply verifySmsCode(@PathVariable("type") int type, @PathVariable("mobile") String mobile,
+                               @PathVariable("code") String code, @RequestParam(value = "check", defaultValue = "false") Boolean isCheck) {
+        return service.verifySmsCode(type, mobile, code, isCheck);
     }
 
+    /**
+     * 获取图形验证图片
+     *
+     * @param mobile 手机号
+     * @return Reply
+     */
+    @GetMapping("/v1.1/piccodes")
+    public Reply getVerifyPic(@RequestHeader("Authorization") String token, @RequestParam("mobile") String mobile) throws IOException {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return service.getVerifyPic(accessToken, mobile);
+    }
+
+    /**
+     * 验证图形验证答案
+     *
+     * @param key 手机号+验证答案的Hash值
+     * @return Reply
+     */
+    @GetMapping("/v1.1/piccodes/{key}")
+    public Reply verifyPicCode(@PathVariable("key") String key) {
+        return service.verifyPicCode(key);
+    }
 }

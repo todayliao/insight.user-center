@@ -2,6 +2,8 @@ package com.apin.usercenter.app;
 
 import com.apin.usercenter.common.entity.App;
 import com.apin.usercenter.common.entity.Function;
+import com.apin.util.JsonUtils;
+import com.apin.util.pojo.AccessToken;
 import com.apin.util.pojo.Reply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,24 +22,22 @@ public class AppController {
     /**
      * 获取全部应用
      *
-     * @param token 访问令牌
      * @return Reply
      */
     @GetMapping("/v1.1/apps")
-    public Reply getApps(@RequestHeader("Authorization") String token) throws Exception {
-        return service.getApps(token);
+    public Reply getApps() {
+        return service.getApps();
     }
 
     /**
      * 获取指定应用的全部模块组、模块及功能
      *
-     * @param token 访问令牌
      * @param appId 应用ID
      * @return Reply
      */
     @GetMapping("/v1.1/apps/{id}/modules")
-    public Reply getModules(@RequestHeader("Authorization") String token, @PathVariable("id") String appId) throws Exception {
-        return service.getModules(token, appId);
+    public Reply getModules(@PathVariable("id") String appId) {
+        return service.getModules(appId);
     }
 
     /**
@@ -48,8 +48,9 @@ public class AppController {
      * @return Reply
      */
     @PostMapping("/v1.1/apps")
-    public Reply addApp(@RequestHeader("Authorization") String token, @RequestBody App app) throws Exception {
-        return service.addApp(token, app);
+    public Reply addApp(@RequestHeader("Authorization") String token, @RequestBody App app) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return service.addApp(accessToken, app);
     }
 
     /**
@@ -60,8 +61,9 @@ public class AppController {
      * @return Reply
      */
     @PostMapping("/v1.1/apps/groups")
-    public Reply addModuleGroup(@RequestHeader("Authorization") String token, @RequestBody Function group) throws Exception {
-        return service.addModuleGroup(token, group);
+    public Reply addModuleGroup(@RequestHeader("Authorization") String token, @RequestBody Function group) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return service.addModuleGroup(accessToken, group);
     }
 
     /**
@@ -72,8 +74,9 @@ public class AppController {
      * @return Reply
      */
     @PostMapping("/v1.1/apps/modules")
-    public Reply addModule(@RequestHeader("Authorization") String token, @RequestBody Function module) throws Exception {
-        return service.addModule(token, module);
+    public Reply addModule(@RequestHeader("Authorization") String token, @RequestBody Function module) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return service.addModule(accessToken, module);
     }
 
     /**
@@ -84,103 +87,96 @@ public class AppController {
      * @return Reply
      */
     @PostMapping("/v1.1/apps/functions")
-    public Reply addFunction(@RequestHeader("Authorization") String token, @RequestBody Function function) throws Exception {
-        return service.addFunction(token, function);
+    public Reply addFunction(@RequestHeader("Authorization") String token, @RequestBody Function function) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return service.addFunction(accessToken, function);
     }
 
     /**
      * 删除应用
      *
-     * @param token 访问令牌
      * @param appId 应用ID
      * @return Reply
      */
     @DeleteMapping("/v1.1/apps/{id}")
-    public Reply deleteApp(@RequestHeader("Authorization") String token, @PathVariable("id") String appId) throws Exception {
-        return service.deleteApp(token, appId);
+    public Reply deleteApp(@PathVariable("id") String appId) {
+        return service.deleteApp(appId);
     }
 
     /**
      * 删除模块组
      *
-     * @param token   访问令牌
      * @param groupId 模块组ID
      * @return Reply
      */
     @DeleteMapping("/v1.1/apps/groups/{id}")
-    public Reply deleteModuleGroup(@RequestHeader("Authorization") String token, @PathVariable("id") String groupId) throws Exception {
-        return service.deleteModuleGroup(token, groupId);
+    public Reply deleteModuleGroup(@PathVariable("id") String groupId) {
+        return service.deleteModuleGroup(groupId);
     }
 
     /**
      * 删除模块
      *
-     * @param token    访问令牌
      * @param moduleId 模块ID
      * @return Reply
      */
     @DeleteMapping("/v1.1/apps/modules/{id}")
-    public Reply deleteModule(@RequestHeader("Authorization") String token, @PathVariable("id") String moduleId) throws Exception {
-        return service.deleteModule(token, moduleId);
+    public Reply deleteModule(@PathVariable("id") String moduleId) {
+        return service.deleteModule(moduleId);
     }
 
     /**
      * 删除模块功能
      *
-     * @param token      访问令牌
      * @param functionId 模块功能ID
      * @return Reply
      */
     @DeleteMapping("/v1.1/apps/functions/{id}")
-    public Reply deleteFunction(@RequestHeader("Authorization") String token, @PathVariable("id") String functionId) throws Exception {
-        return service.deleteFunction(token, functionId);
+    public Reply deleteFunction(@PathVariable("id") String functionId) {
+        return service.deleteFunction(functionId);
     }
 
     /**
      * 更新应用
      *
-     * @param token 访问令牌
-     * @param app   应用数据
+     * @param app 应用数据
      * @return Reply
      */
     @PutMapping("/v1.1/apps/{id}")
-    public Reply updateApp(@RequestHeader("Authorization") String token, @RequestBody App app) throws Exception {
-        return service.updateApp(token, app);
+    public Reply updateApp(@RequestBody App app) {
+        return service.updateApp(app);
     }
 
     /**
      * 更新模块组
      *
-     * @param token 访问令牌
      * @param group 模块组数据
      * @return Reply
      */
     @PutMapping("/v1.1/apps/groups/{id}")
-    public Reply updateModuleGroup(@RequestHeader("Authorization") String token, @RequestBody Function group) throws Exception {
-        return service.updateModuleGroup(token, group);
+    public Reply updateModuleGroup(@RequestBody Function group) {
+        return service.updateModuleGroup(group);
     }
 
     /**
      * 更新模块
      *
-     * @param token  访问令牌
      * @param module 模块数据
      * @return Reply
      */
     @PutMapping("/v1.1/apps/modules/{id}")
-    public Reply updateModule(@RequestHeader("Authorization") String token, @RequestBody Function module) throws Exception {
-        return service.updateModule(token, module);
+    public Reply updateModule(@RequestBody Function module) {
+        return service.updateModule(module);
     }
 
     /**
      * 更新模块功能数据
      *
-     * @param token    访问令牌
      * @param function 模块功能数据
      * @return Reply
      */
     @PutMapping("/v1.1/apps/functions/{id}")
-    public Reply updateFunction(@RequestHeader("Authorization") String token, @RequestBody Function function) throws Exception {
-        return service.updateFunction(token, function);
+    public Reply updateFunction(@RequestBody Function function) {
+        return service.updateFunction(function);
     }
 }

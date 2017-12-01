@@ -3,7 +3,9 @@ package com.apin.usercenter.auth.dto;
 import java.io.Serializable;
 
 /**
- * 刷新令牌，客户端调用刷新接口延长令牌使用时间所需提供的凭证
+ * @author 宣炳刚
+ * @date 2017/9/15
+ * @remark 刷新令牌，客户端调用刷新接口延长令牌使用时间所需提供的凭证
  */
 public class RefreshToken implements Serializable {
     private static final long serialVersionUID = -1L;

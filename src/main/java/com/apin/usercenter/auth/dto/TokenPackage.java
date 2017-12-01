@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 令牌包，向客户端返回令牌数据用
+ * @author 宣炳刚
+ * @date 2017/9/15
+ * @remark 令牌包，向客户端返回令牌数据用
  */
 public class TokenPackage implements Serializable {
     private static final long serialVersionUID = -1L;

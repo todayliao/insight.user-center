@@ -1,5 +1,7 @@
 package com.apin.usercenter.user;
 
+import com.apin.util.JsonUtils;
+import com.apin.util.pojo.AccessToken;
 import com.apin.util.pojo.Reply;
 import com.apin.util.pojo.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +28,64 @@ public class UserController {
      */
     @GetMapping("/v1.1/users")
     public Reply getUsers(@RequestHeader("Authorization") String token, @RequestParam(defaultValue = "1") int page,
-                          @RequestParam(defaultValue = "20") int size) throws Exception {
-        return services.getUsers(token, page, size);
+                          @RequestParam(defaultValue = "20") int size) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return services.getUsers(accessToken, page, size);
+    }
+
+    /**
+     * 获取符合条件用户
+     *
+     * @param token 访问令牌
+     * @param token 访问令牌
+     * @param token 访问令牌
+     * @param page  分页页码,默认1
+     * @param size  每页行数,默认20
+     * @return Reply
+     */
+    @GetMapping("/v1.1/userList")
+    public Reply getUserList(@RequestHeader("Authorization") String token, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size,
+                             String account, String name, String mobile, Boolean status, String startDate, String endDate) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return services.getUserList(accessToken, page, size, account, name, mobile, status, startDate, endDate);
+    }
+
+    /**
+     * 获取单个用户信息
+     *
+     * @param token 访问令牌
+     * @param id    用户ID
+     * @return Reply
+     * @Author:郑昊
+     */
+    @GetMapping("/v1.1/users/{id}")
+    public Reply getUser(@RequestHeader("Authorization") String token, @PathVariable("id") String id) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return services.getUser(accessToken, id);
+    }
+
+    /**
+     * 获取访问者的用户信息
+     *
+     * @param token 访问令牌
+     * @return Reply
+     */
+    @GetMapping("/v1.1/users/myself")
+    public Reply getMyself(@RequestHeader("Authorization") String token) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return services.getUser(accessToken, accessToken.getUserId());
+    }
+
+    /**
+     * 检验用户信息是否存在
+     *
+     * @param user  User实体
+     * @return Reply
+     * @Author:郑昊
+     */
+    @PostMapping("/v1.1/users/ifexist")
+    public Reply ifExist(@RequestBody User user) {
+        return services.ifExist(user);
     }
 
     /**
@@ -38,58 +96,53 @@ public class UserController {
      * @return Reply
      */
     @PostMapping("/v1.1/users")
-    public Reply addUser(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
-        return services.addUser(token, user);
+    public Reply addUser(@RequestHeader("Authorization") String token, @RequestBody User user) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return services.addUser(accessToken, user);
     }
 
     /**
      * 注册用户
      *
-     * @param token    访问令牌
-     * @param user     User实体,来自Body
-     * @param initRole 是否初始化角色
+     * @param user  User实体,来自Body
      * @return Reply
      */
     @PostMapping("/v1.1/users/signup")
-    public Reply signUp(@RequestHeader("Authorization") String token, @RequestBody User user,
-                        @RequestParam(value = "init", defaultValue = "false") Boolean initRole) throws Exception {
-        return services.signUp(token, user, initRole);
+    public Reply signUp(@RequestBody User user) {
+        return services.signUp(user);
     }
 
     /**
      * 删除用户
      *
-     * @param token  访问令牌
      * @param userId 用户ID
      * @return Reply
      */
     @DeleteMapping("/v1.1/users/{id}")
-    public Reply deleteUser(@RequestHeader("Authorization") String token, @PathVariable("id") String userId) throws Exception {
-        return services.deleteUser(token, userId);
+    public Reply deleteUser(@PathVariable("id") String userId) {
+        return services.deleteUser(userId);
     }
 
     /**
      * 更新用户信息(名称及备注)
      *
-     * @param token 访问令牌
-     * @param user  User实体,来自Body
+     * @param user User实体,来自Body
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/info")
-    public Reply updateUserInfo(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
-        return services.updateUserInfo(token, user);
+    public Reply updateUserInfo(@RequestBody User user) {
+        return services.updateUserInfo(user);
     }
 
     /**
      * 更新用户类型
      *
-     * @param token 访问令牌
-     * @param user  User实体,来自Body
+     * @param user User实体,来自Body
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/type")
-    public Reply updateUserType(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
-        return services.updateUserType(token, user);
+    public Reply updateUserType(@RequestBody User user) {
+        return services.updateUserType(user);
     }
 
     /**
@@ -100,8 +153,9 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/mobile")
-    public Reply updateUserMobile(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
-        return services.updateUserMobile(token, user);
+    public Reply updateUserMobile(@RequestHeader("Authorization") String token, @RequestBody User user) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return services.updateUserMobile(accessToken, user);
     }
 
     /**
@@ -112,8 +166,9 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/email")
-    public Reply updateUserEmail(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
-        return services.updateUserEmail(token, user);
+    public Reply updateUserEmail(@RequestHeader("Authorization") String token, @RequestBody User user) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return services.updateUserEmail(accessToken, user);
     }
 
     /**
@@ -124,20 +179,20 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/sign")
-    public Reply updatePassword(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
-        return services.updatePassword(token, user);
+    public Reply updatePassword(@RequestHeader("Authorization") String token, @RequestBody User user) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return services.updatePassword(accessToken, user);
     }
 
     /**
      * 重置登录密码
      *
-     * @param token 访问令牌
      * @param user  User实体,来自Body
      * @return Reply
      */
     @PostMapping("/v1.1/users/{id}/sign")
-    public Reply resetPassword(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
-        return services.resetPassword(token, user);
+    public Reply resetPassword(@RequestBody User user) {
+        return services.resetPassword(user);
     }
 
     /**
@@ -148,20 +203,19 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/paypw")
-    public Reply updatePayPassword(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
-        return services.updatePayPassword(token, user);
+    public Reply updatePayPassword(@RequestHeader("Authorization") String token, @RequestBody User user) {
+        AccessToken accessToken = JsonUtils.toAccessToken(token);
+        return services.updatePayPassword(accessToken, user);
     }
 
     /**
      * 更新用户状态(禁用/启用)
      *
-     * @param token 访问令牌
-     * @param user  User实体,来自Body
+     * @param user User实体,来自Body
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/status")
-    public Reply updateUserStatus(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
-        return services.updateUserStatus(token, user);
+    public Reply updateUserStatus(@RequestBody User user) {
+        return services.updateUserStatus(user);
     }
-
 }

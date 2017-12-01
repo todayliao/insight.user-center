@@ -40,13 +40,22 @@ public interface AppMapper extends Mapper {
     List<Function> getModules(@Param("id") String appId);
 
     /**
+     * 获取指定功能对应的接口URL集合
+     *
+     * @param alias 功能别名
+     * @return 接口URL集合
+     */
+    @Select("SELECT url FROM function_url WHERE function=#{alias}")
+    List<String> getFunctionUrls(String alias);
+
+    /**
      * 新增应用
      *
      * @param app 应用实体数据
      * @return 受影响行数
      */
-    @Insert("insert application (id,`name`,alias,secret,icon,host,creator_user_id,created_time) " +
-            "VALUES (#{id},#{name},#{alias},#{secret},#{icon},#{host},#{creatorUserId},#{createdTime});")
+    @Insert("insert application (id,`name`,alias,secret,icon,host,creator_user_id) " +
+            "VALUES (#{id},#{name},#{alias},#{secret},#{icon},#{host},#{creatorUserId});")
     Integer addApp(App app);
 
     /**
@@ -55,8 +64,8 @@ public interface AppMapper extends Mapper {
      * @param group 功能实体数据
      * @return 受影响行数
      */
-    @Insert("insert module_group (id,application_id,`index`,`name`,icon,remark,creator_user_id,created_time) " +
-            "VALUES (#{id},#{parentId},#{index},#{name},#{icon},#{remark},#{creatorUserId},#{createdTime});")
+    @Insert("insert module_group (id,application_id,`index`,`name`,icon,remark,creator_user_id) " +
+            "VALUES (#{id},#{parentId},#{index},#{name},#{icon},#{remark},#{creatorUserId});")
     Integer addModuleGroup(Function group);
 
     /**
@@ -65,8 +74,8 @@ public interface AppMapper extends Mapper {
      * @param module 功能实体数据
      * @return 受影响行数
      */
-    @Insert("insert module (id,group_id,`index`,`name`,icon,url,remark,creator_user_id,created_time) " +
-            "VALUES (#{id},#{parentId},#{index},#{name},#{icon},#{url},#{remark},#{creatorUserId},#{createdTime});")
+    @Insert("insert module (id,group_id,`index`,`name`,icon,url,remark,creator_user_id) " +
+            "VALUES (#{id},#{parentId},#{index},#{name},#{icon},#{url},#{remark},#{creatorUserId});")
     Integer addModule(Function module);
 
     /**
@@ -75,9 +84,22 @@ public interface AppMapper extends Mapper {
      * @param function 功能实体数据
      * @return 受影响行数
      */
-    @Insert("insert module_function (id,module_id,`index`,`name`,alias,icon,url,remark,is_invisible,creator_user_id,created_time) " +
-            "VALUES (#{id},#{parentId},#{index},#{name},#{alias},#{icon},#{url},#{remark},#{invisible},#{creatorUserId},#{createdTime});")
+    @Insert("insert module_function (id,module_id,`index`,`name`,alias,icon,url,remark,begin_group,hide_text,is_invisible,creator_user_id) " +
+            "VALUES (#{id},#{parentId},#{index},#{name},#{alias},#{icon},#{url},#{remark},#{beginGroup},#{hideText},#{invisible},#{creatorUserId});")
     Integer addFunction(Function function);
+
+    /**
+     * 新增功能-接口URL对应关系
+     *
+     * @param alias 接口URL集合
+     * @param urls  接口URL集合
+     * @return 受影响行数
+     */
+    @Insert("<script>INSERT function_url(id, function, url) VALUES " +
+            "<foreach collection = \"urls\" item = \"item\" index = \"index\" separator = \",\"> " +
+            "(REPLACE(uuid(),'-',''),#{alias},#{item}) " +
+            "</foreach></script>")
+    Integer addFunctionUrl(@Param("alias") String alias, @Param("urls") List<String> urls);
 
     /**
      * 删除指定ID的应用
@@ -85,8 +107,9 @@ public interface AppMapper extends Mapper {
      * @param appId 应用ID
      * @return 受影响行数
      */
-    @Delete("DELETE a,g,m,f FROM application a LEFT JOIN module_group g ON g.application_id=a.id " +
-            "LEFT JOIN module m ON m.group_id=g.id LEFT JOIN module_function f ON f.module_id=m.id WHERE a.id=#{id};")
+    @Delete("DELETE a,g,m,f,r FROM application a LEFT JOIN module_group g ON g.application_id=a.id " +
+            "LEFT JOIN module m ON m.group_id=g.id LEFT JOIN module_function f ON f.module_id=m.id " +
+            "LEFT JOIN function_url r ON r.function=f.alias WHERE a.id=#{id};")
     Integer deleteAppById(@Param("id") String appId);
 
     /**
@@ -95,8 +118,8 @@ public interface AppMapper extends Mapper {
      * @param groupId 模块组ID
      * @return 受影响行数
      */
-    @Delete("DELETE g,m,f FROM module_group g LEFT JOIN module m ON m.group_id=g.id " +
-            "LEFT JOIN module_function f ON f.module_id=m.id WHERE g.id=#{id};")
+    @Delete("DELETE g,m,f,r FROM module_group g LEFT JOIN module m ON m.group_id=g.id " +
+            "LEFT JOIN module_function f ON f.module_id=m.id LEFT JOIN function_url r ON r.function=f.alias WHERE g.id=#{id};")
     Integer deleteGroupById(@Param("id") String groupId);
 
     /**
@@ -105,7 +128,8 @@ public interface AppMapper extends Mapper {
      * @param moduleId 模块ID
      * @return 受影响行数
      */
-    @Delete("DELETE m,f FROM module m LEFT JOIN module_function f ON f.module_id=m.id WHERE m.id=#{id};")
+    @Delete("DELETE m,f,r FROM module m LEFT JOIN module_function f ON f.module_id=m.id " +
+            "LEFT JOIN function_url r ON r.function=f.alias WHERE m.id=#{id};")
     Integer deleteModuleById(@Param("id") String moduleId);
 
     /**
@@ -114,8 +138,17 @@ public interface AppMapper extends Mapper {
      * @param functionId 模块功能ID
      * @return 受影响行数
      */
-    @Delete("DELETE FROM module_function WHERE id=#{id};")
+    @Delete("DELETE f,r FROM module_function f LEFT JOIN function_url r ON r.function=f.alias WHERE f.id=#{id};")
     Integer deleteFunctionById(@Param("id") String functionId);
+
+    /**
+     * 删除指定别名的接口URL关系
+     *
+     * @param alias 功能别名
+     * @return 受影响行数
+     */
+    @Delete("DELETE FROM function_url WHERE function=#{alias};")
+    Integer deleteFunctionUrl(String alias);
 
     /**
      * 更新应用
@@ -150,6 +183,7 @@ public interface AppMapper extends Mapper {
      * @param function 模块功能数据
      * @return 受影响行数
      */
-    @Update("update module_function set `index`=#{index},`name`=#{name},alias=#{alias},icon=#{icon},url=#{url},remark=#{remark},is_invisible=#{invisible} where id=#{id};")
+    @Update("update module_function set `index`=#{index},`name`=#{name},alias=#{alias},icon=#{icon},url=#{url},remark=#{remark}," +
+            "begin_group=#{beginGroup},hide_text=#{hideText},is_invisible=#{invisible} where id=#{id};")
     Integer updateFunction(Function function);
 }

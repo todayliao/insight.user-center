@@ -1,23 +1,19 @@
 package com.apin.usercenter.user;
 
 import com.apin.usercenter.auth.dto.TokenPackage;
-import com.apin.usercenter.common.Verify;
+import com.apin.usercenter.common.Core;
 import com.apin.usercenter.common.entity.Token;
 import com.apin.usercenter.common.mapper.UserMapper;
-import com.apin.usercenter.component.Core;
 import com.apin.util.Generator;
 import com.apin.util.ReplyHelper;
+import com.apin.util.pojo.AccessToken;
 import com.apin.util.pojo.Reply;
 import com.apin.util.pojo.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author 宣炳刚
@@ -27,24 +23,18 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class UserServicesImpl implements UserServices {
     private final Core core;
-    private final StringRedisTemplate redis;
     private final UserMapper userMapper;
-    private final Logger logger;
 
     /**
      * 构造函数
      *
      * @param core       自动注入的Core
-     * @param redis      自动注入的StringRedisTemplate
      * @param userMapper 自动注入的UserMapper
      */
     @Autowired
-    public UserServicesImpl(Core core, StringRedisTemplate redis, UserMapper userMapper) {
+    public UserServicesImpl(Core core, UserMapper userMapper) {
         this.core = core;
-        this.redis = redis;
         this.userMapper = userMapper;
-
-        logger = LoggerFactory.getLogger(this.getClass());
     }
 
     /**
@@ -56,25 +46,65 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply getUsers(String token, int page, int size) {
-        Date now = new Date();
-        if (size < 10 || size > 100) return ReplyHelper.invalidParam("每页数量只能是10-100之间的数字！");
+    public Reply getUsers(AccessToken token, int page, int size) {
+        if (page < 1) {
+            page = 1;
+        }
 
-        if (page < 1) page = 1;
-
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        Reply reply = verify.compare("ListUsers");
-        if (!reply.getSuccess()) return reply;
-
-        Integer total = userMapper.getUsersCountByApp(verify.getAppId(), verify.getAccountId());
+        Integer total = userMapper.getUsersCountByApp(token.getAppId(), token.getAccountId());
         int offset = (page - 1) * size;
-        List<User> users = userMapper.getUsersByApp(verify.getAppId(), verify.getAccountId(), offset, size);
-
-        long time = new Date().getTime() - now.getTime();
-        logger.info("getUsers耗时:" + time + "毫秒...");
+        List<User> users = userMapper.getUsersByApp(token.getAppId(), token.getAccountId(), offset, size);
 
         return ReplyHelper.success(users, total);
+    }
+
+    /**
+     * 根据条件查询用户集合(分页)
+     *
+     * @param token     访问令牌
+     * @param page      页码
+     * @param size      每页行数
+     * @param account   账号名
+     * @param name      用户名
+     * @param mobile    手机号
+     * @param status    用户状态
+     * @param startDate 开始日期
+     * @param endDate   截止日期
+     * @return 用户集合
+     */
+    @Override
+    public Reply getUserList(AccessToken token, int page, int size, String account, String name, String mobile,
+                             Boolean status, String startDate, String endDate) {
+        String applicationId = token.getAppId();
+        int offset = (page - 1) * size;
+        Integer total = userMapper.queryUsersCount(applicationId, account, name, mobile, status, startDate, endDate);
+        List<User> users = userMapper.queryUsers(applicationId, offset, size, account, name, mobile, status, startDate, endDate);
+        return ReplyHelper.success(users, total);
+    }
+
+    /**
+     * 根据ID查询用户
+     *
+     * @param token 访问令牌
+     * @param id    用户ID
+     * @return 用户实体数据
+     */
+    @Override
+    public Reply getUser(AccessToken token, String id) {
+        User user = userMapper.getUserById(token.getAppId(), id);
+        return ReplyHelper.success(user);
+    }
+
+    /**
+     * 检验用户信息是否存在
+     *
+     * @param user  User实体
+     * @return Reply
+     * @Author:郑昊
+     */
+    @Override
+    public Reply ifExist(User user) {
+        return ReplyHelper.success(core.isExisted(user));
     }
 
     /**
@@ -85,28 +115,20 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply addUser(String token, User user) {
-        Date now = new Date();
+    public Reply addUser(AccessToken token, User user) {
 
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        Reply reply = verify.compare("AddUser");
-        if (!reply.getSuccess()) return reply;
+        user.setApplicationId(token.getAppId());
+        if (user.getAccountId() == null || user.getAccountId().isEmpty()) {
+            user.setAccountId(token.getAccountId());
+        }
 
         // 验证用户是否存在
-        if (core.isExisted(user)) return ReplyHelper.accountExist();
+        if (core.isExisted(user)) {
+            return ReplyHelper.accountExist();
+        }
 
-        // 初始化并持久化用户对象
-        user.setApplicationId(verify.getAppId());
-        if (user.getAccountId() == null || user.getAccountId().isEmpty()) user.setAccountId(verify.getAccountId());
-
-        user.setBuiltin(false);
-        user.setInvalid(false);
-        user.setCreatedTime(new Date());
+        // 持久化用户对象
         Integer count = userMapper.addUser(user);
-
-        long time = new Date().getTime() - now.getTime();
-        logger.info("addUser耗时:" + time + "毫秒...");
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.error();
     }
@@ -114,78 +136,54 @@ public class UserServicesImpl implements UserServices {
     /**
      * 注册用户
      *
-     * @param token    访问令牌
-     * @param user     User实体,来自Body
-     * @param initRole 是否初始化角色
+     * @param user  User实体,来自Body
      * @return Reply
      */
     @Override
-    public Reply signUp(String token, User user, Boolean initRole) {
-        Date now = new Date();
-
-        // 验证公共令牌
-        Verify verify = new Verify(core, redis, token);
-        Reply reply = verify.compare();
-        if (!reply.getSuccess()) return reply;
+    public Reply signUp(User user) {
 
         // 验证短信验证码
         Boolean success = core.verifySmsCode(1, user.getMobile(), user.getOption(), false);
-        if (!success) return ReplyHelper.invalidCode();
+        if (!success) {
+            return ReplyHelper.invalidCode();
+        }
 
         // 验证用户是否存在
-        if (core.isExisted(user)) return ReplyHelper.accountExist();
+        if (core.isExisted(user)) {
+            return ReplyHelper.accountExist();
+        }
 
         // 初始化并持久化用户对象
-        user.setApplicationId(verify.getAppId());
         user.setBuiltin(false);
         user.setInvalid(false);
         user.setCreatedTime(new Date());
         Integer count = userMapper.addUser(user);
 
-        String userId = core.getUserId(verify.getAppId(), user.getAccount());
-        if (userId == null) return ReplyHelper.error();
+        String userId = core.getUserId(user.getApplicationId(), user.getAccount());
+        if (userId == null) {
+            return ReplyHelper.error();
+        }
 
         // 初始化令牌数据并返回，实现自动登录功能
         Token accessToken = core.getToken(user.getId());
-        String code = core.generateCode(accessToken, 0, null);
         core.initAccessToken(accessToken);
-        TokenPackage tokens = core.creatorKey(accessToken, code);
+        TokenPackage tokens = core.creatorKey(accessToken, Generator.uuid());
 
-        // 生成初始化角色时验证用的key
-        String key = null;
-        if (initRole) {
-            key = Generator.uuid();
-            redis.opsForValue().set(key, userId, 5, TimeUnit.SECONDS);
-        }
-
-        long time = new Date().getTime() - now.getTime();
-        logger.info("addUser耗时:" + time + "毫秒...");
-
-        return count > 0 ? ReplyHelper.success(tokens, key) : ReplyHelper.error();
+        return count > 0 ? ReplyHelper.success(tokens) : ReplyHelper.error();
     }
 
     /**
      * 删除用户
      *
-     * @param token  访问令牌
      * @param userId 用户ID
      * @return Reply
      */
     @Override
-    public Reply deleteUser(String token, String userId) {
-        Date now = new Date();
-
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        Reply reply = verify.compare("DeleteUser");
-        if (!reply.getSuccess()) return reply;
+    public Reply deleteUser(String userId) {
 
         // 获取Token缓存中被删除用户的Token
         Token accessToken = core.getToken(userId);
         Boolean success = core.deleteUser(accessToken, userId);
-
-        long time = new Date().getTime() - now.getTime();
-        logger.info("deleteUser耗时:" + time + "毫秒...");
 
         return success ? ReplyHelper.success() : ReplyHelper.error();
     }
@@ -193,28 +191,13 @@ public class UserServicesImpl implements UserServices {
     /**
      * 更新用户信息(名称及备注)
      *
-     * @param token 访问令牌
-     * @param user  User实体
+     * @param user User实体
      * @return Reply
      */
     @Override
-    public Reply updateUserInfo(String token, User user) {
-        Date now = new Date();
-
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        String key = "EditUser";
-        if (verify.getUserId().equals(user.getId())) key = null;
-
-        Reply reply = verify.compare(key);
-        if (!reply.getSuccess()) return reply;
-
-        // 如更新的是自己的用户信息，则使用自己的Token，否则使用Token缓存中用户的Token
-        Token accessToken = key == null ? verify.getBasis() : core.getToken(user.getId());
+    public Reply updateUserInfo(User user) {
+        Token accessToken = core.getToken(user.getId());
         Boolean success = core.setUserInfo(accessToken, user.getId(), user.getName(), user.getRemark());
-
-        long time = new Date().getTime() - now.getTime();
-        logger.info("updateUserInfo耗时:" + time + "毫秒...");
 
         return success ? ReplyHelper.success() : ReplyHelper.error();
     }
@@ -222,25 +205,15 @@ public class UserServicesImpl implements UserServices {
     /**
      * 更新用户类型
      *
-     * @param token 访问令牌
-     * @param user  User实体
+     * @param user User实体
      * @return Reply
      */
     @Override
-    public Reply updateUserType(String token, User user) {
-        Date now = new Date();
-
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        Reply reply = verify.compare("EditUser");
-        if (!reply.getSuccess()) return reply;
+    public Reply updateUserType(User user) {
 
         // 获取Token缓存中被更新用户的Token
         Token accessToken = core.getToken(user.getId());
         Boolean success = core.setUserType(accessToken, user.getId(), user.getUserType());
-
-        long time = new Date().getTime() - now.getTime();
-        logger.info("updateUserType耗时:" + time + "毫秒...");
 
         return success ? ReplyHelper.success() : ReplyHelper.error();
     }
@@ -253,20 +226,14 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply updateUserMobile(String token, User user) {
-        Date now = new Date();
-
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        Reply reply = verify.compare();
-        if (!reply.getSuccess()) return reply;
-
-        if (!verify.getUserId().equals(user.getId())) return ReplyHelper.invalidParam();
+    public Reply updateUserMobile(AccessToken token, User user) {
+        if (!token.getUserId().equals(user.getId())) {
+            return ReplyHelper.invalidParam();
+        }
 
         // 使用用户自己的Token
-        Boolean success = core.setMobile(verify.getBasis(), user.getMobile());
-        long time = new Date().getTime() - now.getTime();
-        logger.info("updateUserMobile耗时:" + time + "毫秒...");
+        Token accessToken = core.getToken(user.getId());
+        Boolean success = core.setMobile(accessToken, user.getMobile());
 
         return success ? ReplyHelper.success() : ReplyHelper.error();
     }
@@ -279,20 +246,14 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply updateUserEmail(String token, User user) {
-        Date now = new Date();
-
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        Reply reply = verify.compare();
-        if (!reply.getSuccess()) return reply;
-
-        if (!verify.getUserId().equals(user.getId())) return ReplyHelper.invalidParam();
+    public Reply updateUserEmail(AccessToken token, User user) {
+        if (!token.getUserId().equals(user.getId())) {
+            return ReplyHelper.invalidParam();
+        }
 
         // 使用用户自己的Token
-        Boolean success = core.setEmail(verify.getBasis(), user.getEmail());
-        long time = new Date().getTime() - now.getTime();
-        logger.info("updateUserEmail耗时:" + time + "毫秒...");
+        Token accessToken = core.getToken(user.getId());
+        Boolean success = core.setEmail(accessToken, user.getEmail());
 
         return success ? ReplyHelper.success() : ReplyHelper.error();
     }
@@ -305,26 +266,13 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply updatePassword(String token, User user) {
-        Date now = new Date();
-
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        String key = "ResetPassword";
-        if (verify.getUserId().equals(user.getId())) key = null;
-
-        Reply reply = verify.compare(key);
-        if (!reply.getSuccess()) return reply;
-
-        // 如更新的是自己的密码，则使用自己的Token，否则使用Token缓存中用户的Token
-        Token accessToken = key == null ? verify.getBasis() : core.getToken(user.getId());
-        String old = accessToken.getPassword();
-        if (key == null && !old.equals(user.getOption())) return ReplyHelper.invalidParam("错误的原密码!");
+    public Reply updatePassword(AccessToken token, User user) {
+        Token accessToken = core.getToken(user.getId());
+        if (token.getUserId().equals(user.getId()) && !accessToken.getPassword().equals(user.getOption())) {
+            return ReplyHelper.invalidParam("错误的原密码!");
+        }
 
         Boolean success = core.setPassword(accessToken, user.getId(), user.getPassword());
-
-        long time = new Date().getTime() - now.getTime();
-        logger.info("updatePassword耗时:" + time + "毫秒...");
 
         return success ? ReplyHelper.success() : ReplyHelper.error();
     }
@@ -332,32 +280,31 @@ public class UserServicesImpl implements UserServices {
     /**
      * 重置登录密码
      *
-     * @param token 访问令牌
      * @param user  User实体
      * @return Reply
      */
     @Override
-    public Reply resetPassword(String token, User user) {
-        Date now = new Date();
-
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        Reply reply = verify.compare();
-        if (!reply.getSuccess()) return reply;
-
+    public Reply resetPassword(User user) {
         Boolean success = core.verifySmsCode(2, user.getMobile(), user.getOption(), false);
-        if (!success) return ReplyHelper.invalidCode();
+        if (!success) {
+            return ReplyHelper.invalidCode();
+        }
 
-        String userId = core.getUserId(verify.getAppId(), user.getAccount());
-        if (userId == null) return ReplyHelper.notExist();
+        String userId = core.getUserId(user.getApplicationId(), user.getAccount());
+        if (userId == null) {
+            return ReplyHelper.notExist();
+        }
 
+        // 更新密码
         Token accessToken = core.getToken(userId);
-        String code = core.generateCode(accessToken, 0, null);
-        core.initAccessToken(accessToken);
-        TokenPackage tokens = core.creatorKey(accessToken, code);
+        success = core.setPassword(accessToken, userId, user.getPassword());
+        if (!success) {
+            return ReplyHelper.error();
+        }
 
-        long time = new Date().getTime() - now.getTime();
-        logger.info("addUser耗时:" + time + "毫秒...");
+        // 生成令牌数据
+        core.initAccessToken(accessToken);
+        TokenPackage tokens = core.creatorKey(accessToken, Generator.uuid());
 
         return ReplyHelper.success(tokens);
     }
@@ -370,23 +317,19 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply updatePayPassword(String token, User user) {
-        Date now = new Date();
-
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        Reply reply = verify.compare();
-        if (!reply.getSuccess()) return reply;
-
-        if (!verify.getUserId().equals(user.getId())) return ReplyHelper.invalidParam();
+    public Reply updatePayPassword(AccessToken token, User user) {
+        if (!token.getUserId().equals(user.getId())) {
+            return ReplyHelper.invalidParam();
+        }
 
         Boolean success = core.verifySmsCode(3, user.getMobile(), user.getOption(), false);
-        if (!success) return ReplyHelper.invalidCode();
+        if (!success) {
+            return ReplyHelper.invalidCode();
+        }
 
         // 使用用户自己的Token
-        success = core.setPayPassword(verify.getBasis(), user.getPaypw());
-        long time = new Date().getTime() - now.getTime();
-        logger.info("updatePayPassword耗时:" + time + "毫秒...");
+        Token accessToken = core.getToken(token.getUserId());
+        success = core.setPayPassword(accessToken, user.getPaypw());
 
         return success ? ReplyHelper.success() : ReplyHelper.error();
     }
@@ -394,25 +337,15 @@ public class UserServicesImpl implements UserServices {
     /**
      * 更新用户状态(禁用/启用)
      *
-     * @param token 访问令牌
-     * @param user  User实体
+     * @param user User实体
      * @return Reply
      */
     @Override
-    public Reply updateUserStatus(String token, User user) {
-        Date now = new Date();
-
-        // 验证令牌
-        Verify verify = new Verify(core, redis, token);
-        String key = user.getInvalid() ? "DisableUser" : "EnableUser";
-        Reply reply = verify.compare(key);
-        if (!reply.getSuccess()) return reply;
+    public Reply updateUserStatus(User user) {
 
         // 获取Token缓存中被更新用户的Token
         Token accessToken = core.getToken(user.getId());
         Boolean success = core.setInvalidStatus(accessToken, user.getId(), user.getInvalid());
-        long time = new Date().getTime() - now.getTime();
-        logger.info("updateUserStatus耗时:" + time + "毫秒...");
 
         return success ? ReplyHelper.success() : ReplyHelper.error();
     }

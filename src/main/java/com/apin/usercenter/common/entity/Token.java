@@ -3,7 +3,9 @@ package com.apin.usercenter.common.entity;
 import com.apin.util.Generator;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author 宣炳刚
@@ -99,6 +101,11 @@ public class Token implements Serializable {
     private Date failureTime;
 
     /**
+     * 使用中的Code
+     */
+    private List<String> usingCodes;
+
+    /**
      * 构造函数
      */
     public Token() {
@@ -109,6 +116,7 @@ public class Token implements Serializable {
         lastConnectTime = now;
         expiryTime = now;
         failureTime = now;
+        usingCodes = new ArrayList<>();
     }
 
     public String getAppId() {
@@ -219,13 +227,16 @@ public class Token implements Serializable {
         return lastConnectTime;
     }
 
+    public void setLastConnectTime(Date lastConnectTime) {
+        this.lastConnectTime = lastConnectTime;
+    }
+
     public Integer getFailureCount() {
         return failureCount;
     }
 
     public void setFailureCount(Integer failureCount) {
-        this.failureCount += failureCount;
-        lastConnectTime = new Date();
+        this.failureCount = failureCount;
     }
 
     public Date getExpiryTime() {
@@ -242,5 +253,25 @@ public class Token implements Serializable {
 
     public void setFailureTime(Date failureTime) {
         this.failureTime = failureTime;
+    }
+
+    public List<String> getUsingCodes() {
+        return usingCodes;
+    }
+
+    public void setUsingCodes(List<String> usingCodes) {
+        this.usingCodes = usingCodes;
+    }
+
+    public void putCode(String code) {
+        usingCodes.add(code);
+    }
+
+    public Boolean containsCode(String code) {
+        return usingCodes.contains(code);
+    }
+
+    public void clearlCodes() {
+        usingCodes.clear();
     }
 }
