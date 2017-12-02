@@ -70,11 +70,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.apin</groupId>
-            <artifactId>apin-util</artifactId>
-            <version>0.1.6.rc30</version>
-        </dependency>
-        <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
         </dependency>
@@ -110,7 +105,12 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>3.12</version>
+            <version>3.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.9</version>
         </dependency>
     </dependencies>
 
@@ -149,17 +149,6 @@
         </resources>
     </build>
 
-    <repositories>
-        <repository>
-            <id>apinrepo</id>
-            <name>apinrepo</name>
-            <url>http://10.0.0.57:8081/nexus/content/groups/public</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <profiles>
         <profile>
             <!-- 本地环境 -->
@@ -176,41 +165,6 @@
             <id>dev</id>
             <properties>
                 <profiles.active>dev</profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <!-- 开发环境 -->
-            <id>dev233</id>
-            <properties>
-                <profiles.active>dev233</profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <!-- 开发环境 -->
-            <id>devtest</id>
-            <properties>
-                <profiles.active>devtest</profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <!-- 开发环境 -->
-            <id>devtestusermodule</id>
-            <properties>
-                <profiles.active>devtestusermodule</profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <!-- 测试环境 -->
-            <id>test</id>
-            <properties>
-                <profiles.active>test</profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <!-- 内网测试环境 -->
-            <id>localtest</id>
-            <properties>
-                <profiles.active>localtest</profiles.active>
             </properties>
         </profile>
         <profile>
