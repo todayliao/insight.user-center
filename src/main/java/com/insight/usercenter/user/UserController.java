@@ -1,9 +1,10 @@
 package com.insight.usercenter.user;
 
-import com.insight.usercenter.common.dto.AccessToken;
+import com.insight.usercenter.common.Verify;
 import com.insight.usercenter.common.dto.Reply;
-import com.insight.usercenter.common.dto.User;
-import com.insight.usercenter.common.utils.JsonUtils;
+import com.insight.usercenter.common.dto.UserDTO;
+import com.insight.usercenter.user.dto.QueryUserDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
  * @date 2017/9/17
  * @remark 用户服务控制器
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/userapi")
 public class UserController {
@@ -19,49 +21,38 @@ public class UserController {
     private UserServices services;
 
     /**
-     * 获取全部用户
-     *
-     * @param token 访问令牌
-     * @param page  分页页码,默认1
-     * @param size  每页行数,默认20
-     * @return Reply
-     */
-    @GetMapping("/v1.1/users")
-    public Reply getUsers(@RequestHeader("Authorization") String token, @RequestParam(defaultValue = "1") int page,
-                          @RequestParam(defaultValue = "20") int size) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return services.getUsers(accessToken, page, size);
-    }
-
-    /**
      * 获取符合条件用户
      *
      * @param token 访问令牌
-     * @param token 访问令牌
-     * @param token 访问令牌
-     * @param page  分页页码,默认1
-     * @param size  每页行数,默认20
+     * @param user  用户查询对象实体
      * @return Reply
      */
-    @GetMapping("/v1.1/userList")
-    public Reply getUserList(@RequestHeader("Authorization") String token, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size,
-                             String account, String name, String mobile, Boolean status, String startDate, String endDate) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return services.getUserList(accessToken, page, size, account, name, mobile, status, startDate, endDate);
+    @GetMapping("/v1.1/users")
+    public Reply getUsers(@RequestHeader("Authorization") String token, QueryUserDTO user) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("getUsers");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        return services.getUsers(user);
     }
 
     /**
      * 获取单个用户信息
      *
-     * @param token 访问令牌
-     * @param id    用户ID
+     * @param id 用户ID
      * @return Reply
-     * @Author:郑昊
      */
     @GetMapping("/v1.1/users/{id}")
     public Reply getUser(@RequestHeader("Authorization") String token, @PathVariable("id") String id) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return services.getUser(accessToken, id);
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("getUsers");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        return services.getUser(verify.getBasis(), id);
     }
 
     /**
@@ -71,9 +62,15 @@ public class UserController {
      * @return Reply
      */
     @GetMapping("/v1.1/users/myself")
-    public Reply getMyself(@RequestHeader("Authorization") String token) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return services.getUser(accessToken, accessToken.getUserId());
+    public Reply getMyself(@RequestHeader("Authorization") String token, @RequestParam(value = "appid", required = false) String appId) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare();
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        String userId = verify.getBasis().getUserId();
+        return appId == null ? services.getUser(verify.getBasis(), userId) : services.getUser(verify.getBasis(), userId, appId);
     }
 
     /**
@@ -81,11 +78,10 @@ public class UserController {
      *
      * @param user User实体
      * @return Reply
-     * @Author:郑昊
      */
-    @PostMapping("/v1.1/users/ifexist")
-    public Reply ifExist(@RequestBody User user) {
-        return services.ifExist(user);
+    @GetMapping("/v1.1/users/account")
+    public Reply exist(UserDTO user) {
+        return services.exist(user);
     }
 
     /**
@@ -96,9 +92,14 @@ public class UserController {
      * @return Reply
      */
     @PostMapping("/v1.1/users")
-    public Reply addUser(@RequestHeader("Authorization") String token, @RequestBody User user) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return services.addUser(accessToken, user);
+    public Reply addUser(@RequestHeader("Authorization") String token, @RequestBody UserDTO user) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("addUser");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        return services.addUser(verify.getBasis(), user);
     }
 
     /**
@@ -108,7 +109,7 @@ public class UserController {
      * @return Reply
      */
     @PostMapping("/v1.1/users/signup")
-    public Reply signUp(@RequestBody User user) {
+    public Reply signUp(@RequestBody UserDTO user) {
         return services.signUp(user);
     }
 
@@ -119,7 +120,13 @@ public class UserController {
      * @return Reply
      */
     @DeleteMapping("/v1.1/users/{id}")
-    public Reply deleteUser(@PathVariable("id") String userId) {
+    public Reply deleteUser(@RequestHeader("Authorization") String token, @PathVariable("id") String userId) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("deleteUser");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
         return services.deleteUser(userId);
     }
 
@@ -130,7 +137,17 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/info")
-    public Reply updateUserInfo(@RequestBody User user) {
+    public Reply updateUserInfo(@RequestHeader("Authorization") String token, @RequestBody UserDTO user) {
+        Verify verify = new Verify(token);
+        String function = verify.getFunction(user.getId(), "updateUser");
+        Reply result = verify.compare(function);
+        if (!result.getSuccess()) {
+            return result;
+        }
+        //如果用户id为空，则从token中取
+        if (StringUtils.isBlank(user.getId())) {
+            user.setId(verify.getBasis().getUserId());
+        }
         return services.updateUserInfo(user);
     }
 
@@ -141,7 +158,13 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/type")
-    public Reply updateUserType(@RequestBody User user) {
+    public Reply updateUserType(@RequestHeader("Authorization") String token, @RequestBody UserDTO user) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("updateUser");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
         return services.updateUserType(user);
     }
 
@@ -153,9 +176,15 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/mobile")
-    public Reply updateUserMobile(@RequestHeader("Authorization") String token, @RequestBody User user) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return services.updateUserMobile(accessToken, user);
+    public Reply updateUserMobile(@RequestHeader("Authorization") String token, @RequestBody UserDTO user) {
+        Verify verify = new Verify(token);
+        String function = verify.getFunction(user.getId(), "updateUser");
+        Reply result = verify.compare(function);
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        return services.updateUserMobile(user);
     }
 
     /**
@@ -166,9 +195,15 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/email")
-    public Reply updateUserEmail(@RequestHeader("Authorization") String token, @RequestBody User user) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return services.updateUserEmail(accessToken, user);
+    public Reply updateUserEmail(@RequestHeader("Authorization") String token, @RequestBody UserDTO user) {
+        Verify verify = new Verify(token);
+        String function = verify.getFunction(user.getId(), "updateUser");
+        Reply result = verify.compare(function);
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        return services.updateUserEmail(user);
     }
 
     /**
@@ -179,9 +214,15 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/sign")
-    public Reply updatePassword(@RequestHeader("Authorization") String token, @RequestBody User user) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return services.updatePassword(accessToken, user);
+    public Reply updatePassword(@RequestHeader("Authorization") String token, @RequestBody UserDTO user) {
+        Verify verify = new Verify(token);
+        String function = verify.getFunction(user.getId(), "resetPassword");
+        Reply result = verify.compare(function);
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        return services.updatePassword(verify.getBasis(), user);
     }
 
     /**
@@ -190,8 +231,8 @@ public class UserController {
      * @param user User实体,来自Body
      * @return Reply
      */
-    @PostMapping("/v1.1/users/{id}/sign")
-    public Reply resetPassword(@RequestBody User user) {
+    @PutMapping("/v1.1/users/sign")
+    public Reply resetPassword(@RequestBody UserDTO user) {
         return services.resetPassword(user);
     }
 
@@ -203,9 +244,14 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/paypw")
-    public Reply updatePayPassword(@RequestHeader("Authorization") String token, @RequestBody User user) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return services.updatePayPassword(accessToken, user);
+    public Reply updatePayPassword(@RequestHeader("Authorization") String token, @RequestBody UserDTO user) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare();
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        return services.updatePayPassword(verify.getBasis(), user);
     }
 
     /**
@@ -215,7 +261,14 @@ public class UserController {
      * @return Reply
      */
     @PutMapping("/v1.1/users/{id}/status")
-    public Reply updateUserStatus(@RequestBody User user) {
+    public Reply updateUserStatus(@RequestHeader("Authorization") String token, @RequestBody UserDTO user) {
+        Verify verify = new Verify(token);
+        String function = user.getInvalid() ? "disableUser" : "enableUser";
+        Reply result = verify.compare(function);
+        if (!result.getSuccess()) {
+            return result;
+        }
+
         return services.updateUserStatus(user);
     }
 }

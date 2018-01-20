@@ -1,6 +1,5 @@
 package com.insight.usercenter.config;
 
-
 import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.utils.ReplyHelper;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -51,14 +50,14 @@ public class GlobalExceptionHandler {
     public Reply ex(BindException ex) {
         BindingResult bindingResult = ex.getBindingResult();
 
-        return ReplyHelper.fail("参数校验失败：" + getError(bindingResult));
+        return ReplyHelper.fail(getError(bindingResult));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Reply invalid(MethodArgumentNotValidException ex) {
         BindingResult bindingResult = ex.getBindingResult();
 
-        return ReplyHelper.fail("非法参数：" + getError(bindingResult));
+        return ReplyHelper.fail(getError(bindingResult));
     }
 
     /**
@@ -69,11 +68,8 @@ public class GlobalExceptionHandler {
      */
     private String getError(BindingResult result) {
         List<FieldError> list = result.getFieldErrors();
-        for (FieldError error : list) {
-            return error.getField() + error.getDefaultMessage();
-        }
 
-        return null;
+        return "输入参数{" + list.get(0).getField() + "}的值不合法！" + list.get(0).getDefaultMessage();
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -95,13 +91,6 @@ public class GlobalExceptionHandler {
         ex.printStackTrace();
 
         return ReplyHelper.fail("处理异常。");
-    }
-
-    @ExceptionHandler(BusinessException.class)
-    public Reply businessex(BusinessException ex) {
-        ex.printStackTrace();
-
-        return ReplyHelper.fail(ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

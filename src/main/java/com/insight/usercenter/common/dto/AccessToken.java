@@ -16,24 +16,9 @@ public class AccessToken implements Serializable {
     private String id;
 
     /**
-     * 应用id
-     */
-    private String appId;
-
-    /**
-     * 账户ID
-     */
-    private String accountId;
-
-    /**
      * 用户ID
      */
     private String userId;
-
-    /**
-     * 登录部门ID
-     */
-    private String deptId;
 
     /**
      * 用户名
@@ -56,22 +41,6 @@ public class AccessToken implements Serializable {
         this.id = id;
     }
 
-    public String getAppId() {
-        return appId;
-    }
-
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
-
-    public String getAccountId() {
-        return accountId;
-    }
-
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
-    }
-
     public String getUserId() {
         return userId;
     }
@@ -86,14 +55,6 @@ public class AccessToken implements Serializable {
 
     public void setUserName(String userName) {
         this.userName = userName;
-    }
-
-    public String getDeptId() {
-        return deptId;
-    }
-
-    public void setDeptId(String deptId) {
-        this.deptId = deptId;
     }
 
     public String getSecret() {

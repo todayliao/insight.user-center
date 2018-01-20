@@ -17,9 +17,9 @@ public class Organization implements Serializable {
     private String id;
 
     /**
-     * 账户ID
+     * 租户ID
      */
-    private String accountId;
+    private String tenantId;
 
     /**
      * 父级机构ID
@@ -87,12 +87,12 @@ public class Organization implements Serializable {
         this.id = id;
     }
 
-    public String getAccountId() {
-        return accountId;
+    public String getTenantId() {
+        return tenantId;
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
     }
 
     public String getParentId() {

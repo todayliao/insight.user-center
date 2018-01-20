@@ -18,14 +18,19 @@ public class Role implements Serializable {
     private String id;
 
     /**
+     * 所属租户ID
+     */
+    private String tenantId;
+
+    /**
      * 所属应用ID
      */
     private String applicationId;
 
     /**
-     * 所属账户ID
+     * 租户类型：0、未定义；1、旅行社；2、供应商；3、旅行社和供应商
      */
-    private String accountId;
+    private Integer tenantType;
 
     /**
      * 角色名称
@@ -40,7 +45,7 @@ public class Role implements Serializable {
     /**
      * 是否内置角色
      */
-    private Boolean builtin;
+    private Boolean isBuiltin;
 
     /**
      * 创建人ID
@@ -62,13 +67,20 @@ public class Role implements Serializable {
      */
     private List<Member> members;
 
-
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
     }
 
     public String getApplicationId() {
@@ -79,12 +91,12 @@ public class Role implements Serializable {
         this.applicationId = applicationId;
     }
 
-    public String getAccountId() {
-        return accountId;
+    public Integer getTenantType() {
+        return tenantType;
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    public void setTenantType(Integer accountType) {
+        this.tenantType = accountType;
     }
 
     public String getName() {
@@ -104,11 +116,11 @@ public class Role implements Serializable {
     }
 
     public Boolean getBuiltin() {
-        return builtin;
+        return isBuiltin;
     }
 
     public void setBuiltin(Boolean builtin) {
-        this.builtin = builtin;
+        isBuiltin = builtin;
     }
 
     public String getCreatorUserId() {

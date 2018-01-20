@@ -1,5 +1,6 @@
 package com.insight.usercenter.org;
 
+
 import com.insight.usercenter.common.dto.Reply;
 
 /**
@@ -14,7 +15,7 @@ public interface OrgService {
      *
      * @return Reply
      */
-    com.insight.usercenter.common.dto.Reply getOrgs();
+    Reply getOrgs();
 
     /**
      * 添加成员

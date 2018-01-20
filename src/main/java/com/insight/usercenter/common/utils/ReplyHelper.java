@@ -180,9 +180,8 @@ public final class ReplyHelper {
 
     /**
      * 请求成功
-     *
      * @param data 数据
-     * @param msg  消息
+     * @param msg 消息
      * @return
      */
     public static Reply success(Object data, String msg) {

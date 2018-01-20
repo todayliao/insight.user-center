@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
  * @date 2017/10/30
  * @remark 部门管理服务控制器
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/orgapi")
 public class OrgController {

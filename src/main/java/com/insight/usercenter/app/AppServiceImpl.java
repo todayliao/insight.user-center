@@ -1,10 +1,12 @@
 package com.insight.usercenter.app;
 
-import com.insight.usercenter.common.dto.AccessToken;
+import com.insight.usercenter.common.Token;
 import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.App;
 import com.insight.usercenter.common.entity.Function;
+import com.insight.usercenter.common.entity.Navigator;
 import com.insight.usercenter.common.mapper.AppMapper;
+import com.insight.usercenter.common.utils.Generator;
 import com.insight.usercenter.common.utils.ReplyHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,16 +21,16 @@ import java.util.List;
  */
 @Service
 public class AppServiceImpl implements AppService {
-    private final AppMapper appMapper;
+    private final AppMapper mapper;
 
     /**
      * 构造函数
      *
-     * @param appMapper 自动注入的RoleMapper
+     * @param mapper 自动注入的AppMapper
      */
     @Autowired
-    public AppServiceImpl(AppMapper appMapper) {
-        this.appMapper = appMapper;
+    public AppServiceImpl(AppMapper mapper) {
+        this.mapper = mapper;
     }
 
     /**
@@ -38,25 +40,20 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public Reply getApps() {
-
-        // 读取数据
-        List<App> apps = appMapper.getApps();
+        List<App> apps = mapper.getApps();
 
         return ReplyHelper.success(apps);
     }
 
     /**
-     * 获取指定应用的全部模块组、模块及功能
+     * 获取指定应用的全部导航及功能
      *
      * @param appId 应用ID
      * @return Reply
      */
     @Override
-    public Reply getModules(String appId) {
-
-        // 读取数据
-        List<Function> list = appMapper.getModules(appId);
-        list.forEach(i -> i.setUrls(appMapper.getFunctionUrls(i.getAlias())));
+    public Reply getApp(String appId) {
+        List<Function> list = mapper.getNavigators(appId);
 
         return ReplyHelper.success(list);
     }
@@ -69,45 +66,30 @@ public class AppServiceImpl implements AppService {
      * @return Reply
      */
     @Override
-    public Reply addApp(AccessToken token, App app) {
-
-        // 持久化数据
+    public Reply addApp(Token token, App app) {
+        app.setId(Generator.uuid());
         app.setCreatorUserId(token.getUserId());
-        Integer count = appMapper.addApp(app);
+
+        // 持久化数据
+        Integer count = mapper.addApp(app);
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能将数据写入数据库!");
     }
 
     /**
-     * 新增模块组
+     * 新增导航
      *
-     * @param token 访问令牌
-     * @param group 模块组数据
+     * @param token     访问令牌
+     * @param navigator 导航数据
      * @return Reply
      */
     @Override
-    public Reply addModuleGroup(AccessToken token, Function group) {
+    public Reply addNavigator(Token token, Navigator navigator) {
+        navigator.setId(Generator.uuid());
+        navigator.setCreatorUserId(token.getUserId());
 
         // 持久化数据
-        group.setCreatorUserId(token.getUserId());
-        Integer count = appMapper.addModuleGroup(group);
-
-        return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能将数据写入数据库!");
-    }
-
-    /**
-     * 新增模块
-     *
-     * @param token  访问令牌
-     * @param module 模块数据
-     * @return Reply
-     */
-    @Override
-    public Reply addModule(AccessToken token, Function module) {
-
-        // 持久化数据
-        module.setCreatorUserId(token.getUserId());
-        Integer count = appMapper.addModule(module);
+        Integer count = mapper.addNavigator(navigator);
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能将数据写入数据库!");
     }
@@ -121,12 +103,12 @@ public class AppServiceImpl implements AppService {
      */
     @Transactional
     @Override
-    public Reply addFunction(AccessToken token, Function function) {
+    public Reply addFunction(Token token, Function function) {
+        function.setId(Generator.uuid());
+        function.setCreatorUserId(token.getUserId());
 
         // 持久化数据
-        function.setCreatorUserId(token.getUserId());
-        Integer count = appMapper.addFunction(function);
-        count += appMapper.addFunctionUrl(function.getAlias(), function.getUrls());
+        Integer count = mapper.addFunction(function);
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能将数据写入数据库!");
     }
@@ -141,39 +123,24 @@ public class AppServiceImpl implements AppService {
     public Reply deleteApp(String appId) {
 
         // 删除数据
-        Integer count = appMapper.deleteAppById(appId);
+        Integer count = mapper.deleteAppById(appId);
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能删除指定的应用!");
     }
 
     /**
-     * 删除模块组
+     * 删除导航
      *
-     * @param groupId 模块组ID
+     * @param navigatorId 导航ID
      * @return Reply
      */
     @Override
-    public Reply deleteModuleGroup(String groupId) {
+    public Reply deleteNavigator(String navigatorId) {
 
         // 删除数据
-        Integer count = appMapper.deleteGroupById(groupId);
+        Integer count = mapper.deleteNavigatorById(navigatorId);
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能删除指定的模块组!");
-    }
-
-    /**
-     * 删除模块
-     *
-     * @param moduleId 模块ID
-     * @return Reply
-     */
-    @Override
-    public Reply deleteModule(String moduleId) {
-
-        // 删除数据
-        Integer count = appMapper.deleteModuleById(moduleId);
-
-        return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能删除指定的模块!");
     }
 
     /**
@@ -186,7 +153,7 @@ public class AppServiceImpl implements AppService {
     public Reply deleteFunction(String functionId) {
 
         // 删除数据
-        Integer count = appMapper.deleteFunctionById(functionId);
+        Integer count = mapper.deleteFunctionById(functionId);
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能删除指定的功能!");
     }
@@ -201,39 +168,24 @@ public class AppServiceImpl implements AppService {
     public Reply updateApp(App app) {
 
         // 持久化数据
-        Integer count = appMapper.updateApp(app);
+        Integer count = mapper.updateApp(app);
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能更新指定的应用!");
     }
 
     /**
-     * 更新模块组
+     * 更新导航
      *
-     * @param group 模块组数据
+     * @param navigator 导航数据
      * @return Reply
      */
     @Override
-    public Reply updateModuleGroup(Function group) {
+    public Reply updateNavigator(Navigator navigator) {
 
         // 持久化数据
-        Integer count = appMapper.updateModuleGroup(group);
+        Integer count = mapper.updateNavigator(navigator);
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能更新指定的模块组!");
-    }
-
-    /**
-     * 更新模块
-     *
-     * @param module 模块数据
-     * @return Reply
-     */
-    @Override
-    public Reply updateModule(Function module) {
-
-        // 持久化数据
-        Integer count = appMapper.updateModule(module);
-
-        return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能更新指定的模块!");
     }
 
     /**
@@ -247,9 +199,7 @@ public class AppServiceImpl implements AppService {
     public Reply updateFunction(Function function) {
 
         // 持久化数据
-        Integer count = appMapper.updateFunction(function);
-        count += appMapper.deleteFunctionUrl(function.getAlias());
-        count += appMapper.addFunctionUrl(function.getAlias(), function.getUrls());
+        Integer count = mapper.updateFunction(function);
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.fail("未能更新指定的模块功能!");
     }

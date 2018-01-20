@@ -20,6 +20,11 @@ import java.util.regex.Pattern;
 public final class DateHelper {
 
     /**
+     * 日期格式字典
+     */
+    private static Map<String, String> formatMap = new HashMap<>(16);
+
+    /**
      * 日期常用格式
      */
     static String[] datePatterns = {"yyyy-MM-dd", "yyyyMMdd"};
@@ -27,10 +32,6 @@ public final class DateHelper {
      * 日期时间常用格式
      */
     static String[] dateTimePatterns = {"yyyyMMddHHmmss", "yyyy-MM-dd HH:mm:ss"};
-    /**
-     * 日期格式字典
-     */
-    private static Map<String, String> formatMap = new HashMap<>(16);
 
     private DateHelper() {
     }

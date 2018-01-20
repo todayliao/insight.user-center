@@ -1,6 +1,8 @@
 package com.insight.usercenter.common.utils.encrypt;
 
 
+import com.insight.usercenter.common.utils.common.Base64Encryptor;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;

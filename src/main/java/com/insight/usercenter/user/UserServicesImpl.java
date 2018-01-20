@@ -1,18 +1,23 @@
 package com.insight.usercenter.user;
 
+import com.github.pagehelper.PageInfo;
+import com.insight.usercenter.auth.dto.TokenPackage;
 import com.insight.usercenter.common.Core;
-import com.insight.usercenter.common.dto.AccessToken;
+import com.insight.usercenter.common.Token;
 import com.insight.usercenter.common.dto.Reply;
-import com.insight.usercenter.common.dto.TokenPackage;
-import com.insight.usercenter.common.dto.User;
-import com.insight.usercenter.common.entity.Token;
+import com.insight.usercenter.common.dto.UserDTO;
+import com.insight.usercenter.common.entity.User;
+import com.insight.usercenter.common.mapper.TenantMapper;
 import com.insight.usercenter.common.mapper.UserMapper;
 import com.insight.usercenter.common.utils.Generator;
 import com.insight.usercenter.common.utils.ReplyHelper;
+import com.insight.usercenter.common.utils.Util;
+import com.insight.usercenter.common.utils.encrypt.Encryptor;
+import com.insight.usercenter.user.dto.QueryUserDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,74 +29,75 @@ import java.util.List;
 public class UserServicesImpl implements UserServices {
     private final Core core;
     private final UserMapper userMapper;
+    private final TenantMapper tenantMapper;
 
     /**
      * 构造函数
      *
-     * @param core       自动注入的Core
-     * @param userMapper 自动注入的UserMapper
+     * @param core         自动注入的Core
+     * @param userMapper   自动注入的UserMapper
+     * @param tenantMapper 自动注入的TenantMapper
      */
     @Autowired
-    public UserServicesImpl(Core core, UserMapper userMapper) {
+    public UserServicesImpl(Core core, UserMapper userMapper, TenantMapper tenantMapper) {
         this.core = core;
         this.userMapper = userMapper;
-    }
-
-    /**
-     * 获取全部用户
-     *
-     * @param token 访问令牌
-     * @param page  分页页码,默认1
-     * @param size  每页行数,默认20
-     * @return Reply
-     */
-    @Override
-    public Reply getUsers(AccessToken token, int page, int size) {
-        if (page < 1) {
-            page = 1;
-        }
-
-        Integer total = userMapper.getUsersCountByApp(token.getAppId(), token.getAccountId());
-        int offset = (page - 1) * size;
-        List<User> users = userMapper.getUsersByApp(token.getAppId(), token.getAccountId(), offset, size);
-
-        return ReplyHelper.success(users, total);
+        this.tenantMapper = tenantMapper;
     }
 
     /**
      * 根据条件查询用户集合(分页)
      *
-     * @param token     访问令牌
-     * @param page      页码
-     * @param size      每页行数
-     * @param account   账号名
-     * @param name      用户名
-     * @param mobile    手机号
-     * @param status    用户状态
-     * @param startDate 开始日期
-     * @param endDate   截止日期
+     * @param user 用户查询对象实体
      * @return 用户集合
      */
     @Override
-    public Reply getUserList(AccessToken token, int page, int size, String account, String name, String mobile,
-                             Boolean status, String startDate, String endDate) {
-        String applicationId = token.getAppId();
-        int offset = (page - 1) * size;
-        Integer total = userMapper.queryUsersCount(applicationId, account, name, mobile, status, startDate, endDate);
-        List<User> users = userMapper.queryUsers(applicationId, offset, size, account, name, mobile, status, startDate, endDate);
-        return ReplyHelper.success(users, total);
+    public Reply getUsers(QueryUserDTO user) {
+        List<User> users = userMapper.getUsers(user);
+        PageInfo<User> pageInfo = new PageInfo<>(users);
+        return ReplyHelper.success(users, pageInfo.getTotal());
     }
 
     /**
      * 根据ID查询用户
      *
-     * @param token 访问令牌
+     * @param token Token
      * @param id    用户ID
      * @return 用户实体数据
      */
     @Override
-    public Reply getUser(AccessToken token, String id) {
-        User user = userMapper.getUserById(token.getAppId(), id);
+    public Reply getUser(Token token, String id) {
+        User user = userMapper.getUserById(id);
+        if (user == null) {
+            return ReplyHelper.notExist();
+        }
+
+        user.setOpenId(token.getWeChatOpenId());
+        if (StringUtils.isBlank(user.getOpenId())) {
+            List<String> list = userMapper.getRoleIdByMemberId(user.getId());
+            if (list != null) {
+                user.setRoles(String.join(",", list));
+            }
+        }
+
+        return ReplyHelper.success(user);
+    }
+
+    /**
+     * 根据ID查询用户
+     *
+     * @param token Token
+     * @param id    用户ID
+     * @param appId 微信AppID
+     * @return Reply
+     */
+    @Override
+    public Reply getUser(Token token, String id, String appId) {
+        User user = userMapper.getUserWithAppId(id, appId);
+        if (user == null) {
+            return ReplyHelper.notExist();
+        }
+
         return ReplyHelper.success(user);
     }
 
@@ -100,27 +106,21 @@ public class UserServicesImpl implements UserServices {
      *
      * @param user User实体
      * @return Reply
-     * @Author:郑昊
      */
     @Override
-    public Reply ifExist(User user) {
+    public Reply exist(UserDTO user) {
         return ReplyHelper.success(core.isExisted(user));
     }
 
     /**
      * 新增用户
      *
-     * @param token 访问令牌
+     * @param token Token
      * @param user  User实体
      * @return Reply
      */
     @Override
-    public Reply addUser(AccessToken token, User user) {
-
-        user.setApplicationId(token.getAppId());
-        if (user.getAccountId() == null || user.getAccountId().isEmpty()) {
-            user.setAccountId(token.getAccountId());
-        }
+    public Reply addUser(Token token, UserDTO user) {
 
         // 验证用户是否存在
         if (core.isExisted(user)) {
@@ -128,7 +128,12 @@ public class UserServicesImpl implements UserServices {
         }
 
         // 持久化用户对象
+        if (user.getId() == null || user.getId().isEmpty()) {
+            user.setId(Generator.uuid());
+        }
+
         Integer count = userMapper.addUser(user);
+        count += tenantMapper.addUserToTenant(token.getTenantId(), user.getId());
 
         return count > 0 ? ReplyHelper.success() : ReplyHelper.error();
     }
@@ -140,11 +145,11 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply signUp(User user) {
+    public Reply signUp(UserDTO user) {
+        String appId = user.getAppId();
 
         // 验证短信验证码
-        Boolean success = core.verifySmsCode(1, user.getMobile(), user.getOption(), false);
-        if (!success) {
+        if (!core.verifySmsCode(1, user.getMobile(), user.getOption())) {
             return ReplyHelper.invalidCode();
         }
 
@@ -153,23 +158,30 @@ public class UserServicesImpl implements UserServices {
             return ReplyHelper.accountExist();
         }
 
-        // 初始化并持久化用户对象
-        user.setBuiltin(false);
-        user.setInvalid(false);
-        user.setCreatedTime(new Date());
-        Integer count = userMapper.addUser(user);
+        // 持久化用户对象
+        if (user.getId() == null || user.getId().isEmpty()) {
+            user.setId(Generator.uuid());
+        }
 
-        String userId = core.getUserId(user.getApplicationId(), user.getAccount());
+        userMapper.addUser(user);
+        String userId = core.getUserId(user.getAccount());
         if (userId == null) {
             return ReplyHelper.error();
         }
 
         // 初始化令牌数据并返回，实现自动登录功能
-        Token accessToken = core.getToken(user.getId());
-        core.initAccessToken(accessToken);
-        TokenPackage tokens = core.creatorKey(accessToken, Generator.uuid());
+        Token token = core.getToken(user.getId());
+        if (token == null) {
+            return ReplyHelper.error();
+        }
 
-        return count > 0 ? ReplyHelper.success(tokens) : ReplyHelper.error();
+        // 绑定设备到用户,并更新设备激活信息
+        core.setTenantIdAndDeptId(token);
+
+        TokenPackage tokens = token.creatorKey(Generator.uuid(), appId, core.getTokenLife(appId));
+        core.setTokenCache(token);
+
+        return ReplyHelper.success(tokens);
     }
 
     /**
@@ -180,12 +192,34 @@ public class UserServicesImpl implements UserServices {
      */
     @Override
     public Reply deleteUser(String userId) {
+        Integer count = userMapper.deleteUserById(userId);
+        if (count <= 0) {
+            return ReplyHelper.error();
+        }
 
         // 获取Token缓存中被删除用户的Token
-        Token accessToken = core.getToken(userId);
-        Boolean success = core.deleteUser(accessToken, userId);
+        Token token = core.getToken(userId);
+        if (token != null) {
+            core.deleteFromRedis(userId);
+            core.deleteFromRedis(token.getAccount());
 
-        return success ? ReplyHelper.success() : ReplyHelper.error();
+            String mobile = token.getMobile();
+            if (mobile != null && !mobile.isEmpty()) {
+                core.deleteFromRedis(mobile);
+            }
+
+            String openId = token.getUnionId();
+            if (openId != null && !openId.isEmpty()) {
+                core.deleteFromRedis(openId);
+            }
+
+            String email = token.getEmail();
+            if (email != null && !email.isEmpty()) {
+                core.deleteFromRedis(email);
+            }
+        }
+
+        return ReplyHelper.success();
     }
 
     /**
@@ -195,11 +229,31 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply updateUserInfo(User user) {
-        Token accessToken = core.getToken(user.getId());
-        Boolean success = core.setUserInfo(accessToken, user.getId(), user.getName(), user.getRemark());
+    public Reply updateUserInfo(UserDTO user) {
+        String userId = user.getId();
+        if (userId == null || userId.isEmpty()) {
+            return ReplyHelper.invalidParam();
+        }
 
-        return success ? ReplyHelper.success() : ReplyHelper.error();
+        String userName = user.getName();
+        if (userName == null || userName.isEmpty()) {
+            return ReplyHelper.invalidParam();
+        }
+
+        Integer count = userMapper.updateUserInfo(userId, user.getCode(), userName, user.getRemark());
+        if (count <= 0) {
+            return ReplyHelper.error();
+        }
+
+        // 更新Token缓存
+        Token token = core.getToken(userId);
+        if (token != null && !token.getUserName().equals(userName)) {
+            token.setUserName(userName);
+            token.setChanged();
+            core.setTokenCache(token);
+        }
+
+        return ReplyHelper.success();
     }
 
     /**
@@ -209,72 +263,211 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply updateUserType(User user) {
+    public Reply updateUserType(UserDTO user) {
+        String userId = user.getId();
+        if (userId == null || userId.isEmpty()) {
+            return ReplyHelper.invalidParam();
+        }
 
-        // 获取Token缓存中被更新用户的Token
-        Token accessToken = core.getToken(user.getId());
-        Boolean success = core.setUserType(accessToken, user.getId(), user.getUserType());
+        Integer userType = user.getUserType();
+        if (userType == null) {
+            return ReplyHelper.invalidParam();
+        }
 
-        return success ? ReplyHelper.success() : ReplyHelper.error();
+        Token token = core.getToken(userId);
+        if (token != null && token.getUserType().equals(userType)) {
+            return ReplyHelper.success();
+        }
+
+        // 保存用户类型到数据库
+        Integer count = userMapper.updateUserType(userId, userType);
+        if (count <= 0) {
+            return ReplyHelper.error();
+        }
+
+        // 更新Token缓存
+        if (token != null) {
+            token.setUserType(userType);
+            token.setChanged();
+            core.setTokenCache(token);
+        }
+
+        return ReplyHelper.success();
     }
 
     /**
      * 更新用户绑定手机号
      *
-     * @param token 访问令牌
-     * @param user  User实体
+     * @param user User实体
      * @return Reply
      */
     @Override
-    public Reply updateUserMobile(AccessToken token, User user) {
-        if (!token.getUserId().equals(user.getId())) {
+    public Reply updateUserMobile(UserDTO user) {
+        String userId = user.getId();
+        if (userId == null || userId.isEmpty()) {
             return ReplyHelper.invalidParam();
         }
 
-        // 使用用户自己的Token
-        Token accessToken = core.getToken(user.getId());
-        Boolean success = core.setMobile(accessToken, user.getMobile());
+        String mobile = user.getMobile();
+        if (mobile != null && !mobile.matches("^1[3-9]\\d{9}")) {
+            return ReplyHelper.invalidParam("错误的手机号码");
+        }
 
-        return success ? ReplyHelper.success() : ReplyHelper.error();
+        // 验证用户是否存在
+        if (mobile != null && core.isExisted(user)) {
+            return ReplyHelper.accountExist();
+        }
+
+        Token token = core.getToken(userId);
+        if (token != null && !token.getBuiltIn() && token.getUserId().equals(user.getId())) {
+            String old = token.getMobile();
+
+            // 验证旧手机号
+            if (old != null && !old.isEmpty() && !core.verifySmsCode(5, old, user.getCode())) {
+                return ReplyHelper.invalidCode();
+            }
+
+            // 验证新手机号
+            if (!core.verifySmsCode(0, mobile, user.getOption())) {
+                return ReplyHelper.invalidCode();
+            }
+        }
+
+        if (token != null && token.getMobile() != null && token.getMobile().equals(mobile)) {
+            return ReplyHelper.success();
+        }
+
+        // 保存数据到数据库
+        Integer count = userMapper.updateMobile(userId, mobile);
+        if (count <= 0) {
+            return ReplyHelper.error();
+        }
+
+        // 更新用户ID缓存
+        if (token != null) {
+            String old = token.getMobile();
+            if (mobile != null) {
+                core.setToRedis(mobile, userId);
+            }
+
+            if (old != null) {
+                core.deleteFromRedis(old);
+            }
+
+            // 更新Token缓存
+            token.setMobile(mobile);
+            token.setChanged();
+            core.setTokenCache(token);
+        }
+
+        return ReplyHelper.success();
     }
 
     /**
      * 更新用户绑定邮箱
      *
-     * @param token 访问令牌
-     * @param user  User实体
+     * @param user User实体
      * @return Reply
      */
     @Override
-    public Reply updateUserEmail(AccessToken token, User user) {
-        if (!token.getUserId().equals(user.getId())) {
+    public Reply updateUserEmail(UserDTO user) {
+        String userId = user.getId();
+        if (userId == null || userId.isEmpty()) {
             return ReplyHelper.invalidParam();
         }
 
-        // 使用用户自己的Token
-        Token accessToken = core.getToken(user.getId());
-        Boolean success = core.setEmail(accessToken, user.getEmail());
+        String email = user.getEmail();
+        if (email != null && !email.matches("^\\w+([.-]?\\w+)*@\\w+([.-]?\\w+)*(\\.\\w{2,3})+$")) {
+            return ReplyHelper.invalidParam("错误的E-Mail格式");
+        }
 
-        return success ? ReplyHelper.success() : ReplyHelper.error();
+        // 验证用户是否存在
+        if (core.isExisted(user)) {
+            return ReplyHelper.accountExist();
+        }
+
+        Token token = core.getToken(userId);
+        if (token != null && token.getEmail() != null && token.getEmail().equals(email)) {
+            return ReplyHelper.success();
+        }
+
+        // 保存数据到数据库
+        Integer count = userMapper.updateEmail(userId, email);
+        if (count <= 0) {
+            return ReplyHelper.error();
+        }
+
+        // 更新用户ID缓存
+        if (token != null) {
+            String old = token.getEmail();
+            if (old != null) {
+                core.deleteFromRedis(old);
+            }
+
+            if (email != null) {
+                core.setToRedis(email, userId);
+            }
+
+            // 更新Token缓存
+            token.setEmail(email);
+            token.setChanged();
+            core.setTokenCache(token);
+        }
+
+        return ReplyHelper.success();
     }
 
     /**
      * 更新登录密码
      *
-     * @param token 访问令牌
+     * @param token Token
      * @param user  User实体
      * @return Reply
      */
     @Override
-    public Reply updatePassword(AccessToken token, User user) {
-        Token accessToken = core.getToken(user.getId());
-        if (token.getUserId().equals(user.getId()) && !accessToken.getPassword().equals(user.getOption())) {
-            return ReplyHelper.invalidParam("错误的原密码!");
+    public Reply updatePassword(Token token, UserDTO user) {
+        String userId = user.getId();
+        if (userId == null || userId.isEmpty()) {
+            return ReplyHelper.invalidParam();
         }
 
-        Boolean success = core.setPassword(accessToken, user.getId(), user.getPassword());
+        String password = user.getPassword();
+        if (password == null || password.isEmpty()) {
+            return ReplyHelper.invalidParam("密码不能为空");
+        }
 
-        return success ? ReplyHelper.success() : ReplyHelper.error();
+        String key = password.length() > 32 ? Encryptor.rsaDecrypt(password, token.getPrivateKey()) : password;
+        Token basis = core.getToken(user.getId());
+        if (token.getUserId().equals(userId)) {
+            String option = user.getOption();
+            if (option == null || option.isEmpty()) {
+                return ReplyHelper.invalidParam();
+            }
+
+            String old = option.length() > 32 ? Encryptor.rsaDecrypt(option, token.getPrivateKey()) : option;
+            if (!basis.getPassword().equals(old)) {
+                return ReplyHelper.invalidParam("错误的原密码!");
+            }
+
+            if (basis.getPassword().equals(key)) {
+                return ReplyHelper.invalidParam("新密码不能与原密码相同");
+            }
+        }
+
+        // 保存密码到数据库
+        Integer count = userMapper.updatePassword(userId, password);
+        if (count <= 0) {
+            return ReplyHelper.error();
+        }
+
+        // 更新Token缓存
+        if (basis != null) {
+            basis.setPassword(key);
+            basis.setChanged();
+            core.setTokenCache(basis);
+        }
+
+        return ReplyHelper.success();
     }
 
     /**
@@ -284,27 +477,55 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply resetPassword(User user) {
-        Boolean success = core.verifySmsCode(2, user.getMobile(), user.getOption(), false);
-        if (!success) {
+    public Reply resetPassword(UserDTO user) {
+        String appId = user.getAppId();
+
+        String mobile = user.getMobile();
+        if (mobile == null || !mobile.matches("^1[3-5|8]\\d{9}")) {
+            return ReplyHelper.invalidParam("错误的手机号码");
+        }
+
+        String password = user.getPassword();
+        if (password == null || password.isEmpty()) {
+            return ReplyHelper.invalidParam("密码不能为空");
+        }
+
+        // 验证短信验证码
+        if (!core.verifySmsCode(2, mobile, user.getOption())) {
             return ReplyHelper.invalidCode();
         }
 
-        String userId = core.getUserId(user.getApplicationId(), user.getAccount());
+        String userId = core.getUserId(mobile);
         if (userId == null) {
             return ReplyHelper.notExist();
         }
 
-        // 更新密码
-        Token accessToken = core.getToken(userId);
-        success = core.setPassword(accessToken, userId, user.getPassword());
-        if (!success) {
+        Token token = core.getToken(userId);
+        if (token == null) {
             return ReplyHelper.error();
         }
 
+        if (token.userIsInvalid()) {
+            core.setTokenCache(token);
+            return ReplyHelper.fail("用户被禁止登录");
+        }
+
+        String key = password.length() > 32 ? Encryptor.rsaDecrypt(password, token.getPrivateKey()) : password;
+        if (token.getPassword().equals(key)) {
+            return ReplyHelper.invalidParam("新密码不能与原密码相同");
+        }
+
+        // 保存密码到数据库
+        Integer count = userMapper.updatePassword(userId, password);
+        if (count <= 0) {
+            return ReplyHelper.error();
+        }
+
+        // 绑定设备到用户,并更新设备激活信息
+        core.setTenantIdAndDeptId(token);
+
         // 生成令牌数据
-        core.initAccessToken(accessToken);
-        TokenPackage tokens = core.creatorKey(accessToken, Generator.uuid());
+        TokenPackage tokens = token.creatorKey(Generator.uuid(), appId, core.getTokenLife(appId));
 
         return ReplyHelper.success(tokens);
     }
@@ -312,26 +533,44 @@ public class UserServicesImpl implements UserServices {
     /**
      * 更新支付密码
      *
-     * @param token 访问令牌
+     * @param token Token
      * @param user  User实体
      * @return Reply
      */
     @Override
-    public Reply updatePayPassword(AccessToken token, User user) {
-        if (!token.getUserId().equals(user.getId())) {
+    public Reply updatePayPassword(Token token, UserDTO user) {
+        String userId = token.getUserId();
+        if (!userId.equals(user.getId())) {
             return ReplyHelper.invalidParam();
         }
 
-        Boolean success = core.verifySmsCode(3, user.getMobile(), user.getOption(), false);
-        if (!success) {
+        String password = user.getPaypw();
+        if (password == null || password.isEmpty()) {
+            return ReplyHelper.invalidParam();
+        }
+
+        // 验证短信验证码
+        if (!core.verifySmsCode(3, token.getMobile(), user.getOption(), false)) {
             return ReplyHelper.invalidCode();
         }
 
-        // 使用用户自己的Token
-        Token accessToken = core.getToken(token.getUserId());
-        success = core.setPayPassword(accessToken, user.getPaypw());
+        String key = Util.md5(token.getUserId() + password);
+        if (token.getPayPassword() != null && token.getPayPassword().equals(key)) {
+            return ReplyHelper.success();
+        }
 
-        return success ? ReplyHelper.success() : ReplyHelper.error();
+        // 保存支付密码到数据库
+        Integer count = userMapper.updatePayPassword(token.getUserId(), key);
+        if (count <= 0) {
+            return ReplyHelper.error();
+        }
+
+        // 更新Token缓存
+        token.setPayPassword(key);
+        token.setChanged();
+        core.setTokenCache(token);
+
+        return ReplyHelper.success();
     }
 
     /**
@@ -341,12 +580,44 @@ public class UserServicesImpl implements UserServices {
      * @return Reply
      */
     @Override
-    public Reply updateUserStatus(User user) {
+    public Reply updateUserStatus(UserDTO user) {
+        String userId = user.getId();
+        if (userId == null || userId.isEmpty()) {
+            return ReplyHelper.invalidParam();
+        }
 
-        // 获取Token缓存中被更新用户的Token
-        Token accessToken = core.getToken(user.getId());
-        Boolean success = core.setInvalidStatus(accessToken, user.getId(), user.getInvalid());
+        Boolean isInvalid = user.getInvalid();
+        if (isInvalid == null) {
+            return ReplyHelper.invalidParam();
+        }
 
-        return success ? ReplyHelper.success() : ReplyHelper.error();
+        User data = userMapper.getUserById(user.getId());
+        if (data == null) {
+            return ReplyHelper.notExist();
+        }
+
+        if (data.getBuiltin()) {
+            return ReplyHelper.fail("不能禁用内置用户");
+        }
+
+        Token token = core.getToken(userId);
+        if (token != null && token.getInvalid().equals(isInvalid)) {
+            return ReplyHelper.success();
+        }
+
+        // 保存用户失效状态到数据库
+        Integer count = userMapper.updateStatus(userId, isInvalid);
+        if (count <= 0) {
+            return ReplyHelper.error();
+        }
+
+        // 更新Token缓存
+        if (token != null) {
+            token.setInvalid(isInvalid);
+            token.setChanged();
+            core.setTokenCache(token);
+        }
+
+        return ReplyHelper.success();
     }
 }

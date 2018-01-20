@@ -2,7 +2,6 @@ package com.insight.usercenter.common.entity;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author 宣炳刚
@@ -16,6 +15,11 @@ public class Function implements Serializable {
      * 节点(功能/模块/模块组)ID
      */
     private String id;
+
+    /**
+     * 应用ID
+     */
+    private String applicationId;
 
     /**
      * 上级节点ID
@@ -33,7 +37,7 @@ public class Function implements Serializable {
     private Integer type;
 
     /**
-     * 功能/模块/模块组名称
+     * 功能名称
      */
     private String name;
 
@@ -43,14 +47,19 @@ public class Function implements Serializable {
     private String alias;
 
     /**
-     * 功能/模块/模块组图标(URL)
+     * 功能图标(URL)
      */
     private String icon;
 
     /**
-     * 功能/模块URL(用于鉴权)
+     * 功能URL(用于鉴权)
      */
     private String url;
+
+    /**
+     * 功能对应接口URL,多个接口URL以逗号分隔
+     */
+    private String interfaces;
 
     /**
      * 是否授权(true:已授权,false:已拒绝,null:未授权)
@@ -80,7 +89,7 @@ public class Function implements Serializable {
     /**
      * 是否不可见
      */
-    private Boolean invisible;
+    private Boolean isInvisible;
 
     /**
      * 创建人ID
@@ -92,17 +101,20 @@ public class Function implements Serializable {
      */
     private Date createdTime;
 
-    /**
-     * 接口URL集合
-     */
-    private List<String> urls;
-
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getApplicationId() {
+        return applicationId;
+    }
+
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
     }
 
     public String getParentId() {
@@ -161,6 +173,14 @@ public class Function implements Serializable {
         this.url = url;
     }
 
+    public String getInterfaces() {
+        return interfaces;
+    }
+
+    public void setInterfaces(String interfaces) {
+        this.interfaces = interfaces;
+    }
+
     public Boolean getAction() {
         return action;
     }
@@ -202,11 +222,11 @@ public class Function implements Serializable {
     }
 
     public Boolean getInvisible() {
-        return invisible;
+        return isInvisible;
     }
 
     public void setInvisible(Boolean invisible) {
-        this.invisible = invisible;
+        isInvisible = invisible;
     }
 
     public String getCreatorUserId() {
@@ -223,13 +243,5 @@ public class Function implements Serializable {
 
     public void setCreatedTime(Date createdTime) {
         this.createdTime = createdTime;
-    }
-
-    public List<String> getUrls() {
-        return urls;
-    }
-
-    public void setUrls(List<String> urls) {
-        this.urls = urls;
     }
 }

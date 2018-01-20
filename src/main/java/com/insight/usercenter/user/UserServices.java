@@ -1,8 +1,10 @@
 package com.insight.usercenter.user;
 
-import com.insight.usercenter.common.dto.AccessToken;
+
+import com.insight.usercenter.common.Token;
 import com.insight.usercenter.common.dto.Reply;
-import com.insight.usercenter.common.dto.User;
+import com.insight.usercenter.common.dto.UserDTO;
+import com.insight.usercenter.user.dto.QueryUserDTO;
 
 /**
  * @author 宣炳刚
@@ -12,57 +14,48 @@ import com.insight.usercenter.common.dto.User;
 public interface UserServices {
 
     /**
-     * 获取全部用户
-     *
-     * @param token 访问令牌
-     * @param page  分页页码,默认1
-     * @param size  每页行数,默认20
-     * @return Reply
-     */
-    Reply getUsers(AccessToken token, int page, int size);
-
-    /**
      * 根据条件查询用户集合(分页)
      *
-     * @param token     访问令牌
-     * @param page      页码
-     * @param size      每页行数
-     * @param account   账号名
-     * @param name      用户名
-     * @param mobile    手机号
-     * @param status    用户状态
-     * @param startDate 开始日期
-     * @param endDate   截止日期
+     * @param user 用户查询对象实体
      * @return 用户集合
      */
-    Reply getUserList(AccessToken token, int page, int size, String account, String name, String mobile, Boolean status, String startDate, String endDate);
+    Reply getUsers(QueryUserDTO user);
 
     /**
      * 根据ID查询用户
      *
-     * @param token 访问令牌
+     * @param token Token
      * @param id    用户ID
-     * @return 用户实体数据
+     * @return Reply
      */
-    Reply getUser(AccessToken token, String id);
+    Reply getUser(Token token, String id);
+
+    /**
+     * 根据ID查询用户
+     *
+     * @param token Token
+     * @param id    用户ID
+     * @param appId 微信AppID
+     * @return Reply
+     */
+    Reply getUser(Token token, String id, String appId);
 
     /**
      * 新增用户
      *
-     * @param token 访问令牌
+     * @param token Token
      * @param user  User实体
      * @return Reply
      */
-    Reply addUser(AccessToken token, User user);
+    Reply addUser(Token token, UserDTO user);
 
     /**
      * 检验用户信息是否存在
      *
      * @param user User实体
      * @return Reply
-     * @Author:郑昊
      */
-    Reply ifExist(User user);
+    Reply exist(UserDTO user);
 
     /**
      * 注册用户
@@ -70,7 +63,7 @@ public interface UserServices {
      * @param user User实体,来自Body
      * @return Reply
      */
-    Reply signUp(User user);
+    Reply signUp(UserDTO user);
 
     /**
      * 删除用户
@@ -86,7 +79,7 @@ public interface UserServices {
      * @param user User实体,来自Body
      * @return Reply
      */
-    Reply updateUserInfo(User user);
+    Reply updateUserInfo(UserDTO user);
 
     /**
      * 更新用户类型
@@ -94,34 +87,32 @@ public interface UserServices {
      * @param user User实体,来自Body
      * @return Reply
      */
-    Reply updateUserType(User user);
+    Reply updateUserType(UserDTO user);
 
     /**
      * 更新用户绑定手机号
      *
-     * @param token 访问令牌
-     * @param user  User实体,来自Body
+     * @param user User实体,来自Body
      * @return Reply
      */
-    Reply updateUserMobile(AccessToken token, User user);
+    Reply updateUserMobile(UserDTO user);
 
     /**
      * 更新用户绑定邮箱
      *
-     * @param token 访问令牌
-     * @param user  User实体,来自Body
+     * @param user User实体,来自Body
      * @return Reply
      */
-    Reply updateUserEmail(AccessToken token, User user);
+    Reply updateUserEmail(UserDTO user);
 
     /**
      * 更新登录密码
      *
-     * @param token 访问令牌
+     * @param token Token
      * @param user  User实体,来自Body
      * @return Reply
      */
-    Reply updatePassword(AccessToken token, User user);
+    Reply updatePassword(Token token, UserDTO user);
 
     /**
      * 重置登录密码
@@ -129,16 +120,16 @@ public interface UserServices {
      * @param user User实体,来自Body
      * @return Reply
      */
-    Reply resetPassword(User user);
+    Reply resetPassword(UserDTO user);
 
     /**
      * 更新支付密码
      *
-     * @param token 访问令牌
+     * @param token Token
      * @param user  User实体,来自Body
      * @return Reply
      */
-    Reply updatePayPassword(AccessToken token, User user);
+    Reply updatePayPassword(Token token, UserDTO user);
 
     /**
      * 更新用户状态(禁用/启用)
@@ -146,6 +137,5 @@ public interface UserServices {
      * @param user User实体,来自Body
      * @return Reply
      */
-    Reply updateUserStatus(User user);
-
+    Reply updateUserStatus(UserDTO user);
 }

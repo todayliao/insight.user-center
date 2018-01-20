@@ -1,6 +1,7 @@
 package com.insight.usercenter.common.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author 宣炳刚
@@ -11,14 +12,24 @@ public class Navigator implements Serializable {
     private static final long serialVersionUID = -1L;
 
     /**
-     * 模块/模块组ID
+     * 导航ID
      */
     private String id;
 
     /**
-     * 所属模块组ID(模块组该值为空)
+     * 应用ID
      */
-    private String groupId;
+    private String applicationId;
+
+    /**
+     * 父级导航ID
+     */
+    private String parentId;
+
+    /**
+     * 级别
+     */
+    private Integer type;
 
     /**
      * 索引,排序用
@@ -26,19 +37,34 @@ public class Navigator implements Serializable {
     private Integer index;
 
     /**
-     * 模块/模块组名称
+     * 导航名称
      */
     private String name;
 
     /**
-     * 模块/模块组图标(URL)
+     * 导航图标(URL)
      */
     private String icon;
 
     /**
-     * 模块路由URL(模块组该值为空)
+     * 导航路由URL(模块组该值为空)
      */
     private String url;
+
+    /**
+     * 备注
+     */
+    private String remark;
+
+    /**
+     * 创建人ID
+     */
+    private String creatorUserId;
+
+    /**
+     * 创建时间
+     */
+    private Date createdTime;
 
     public String getId() {
         return id;
@@ -48,12 +74,28 @@ public class Navigator implements Serializable {
         this.id = id;
     }
 
-    public String getGroupId() {
-        return groupId;
+    public String getApplicationId() {
+        return applicationId;
     }
 
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+    }
+
+    public String getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
     }
 
     public Integer getIndex() {
@@ -86,5 +128,29 @@ public class Navigator implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public String getCreatorUserId() {
+        return creatorUserId;
+    }
+
+    public void setCreatorUserId(String creatorUserId) {
+        this.creatorUserId = creatorUserId;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
     }
 }

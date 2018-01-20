@@ -27,11 +27,6 @@ public class App implements Serializable {
     private String alias;
 
     /**
-     * 应用公共验证码
-     */
-    private String secret;
-
-    /**
      * 应用图标
      */
     private String icon;
@@ -40,6 +35,11 @@ public class App implements Serializable {
      * 应用域名
      */
     private String host;
+
+    /**
+     * 令牌生命周期(小时)
+     */
+    private Integer tokenLife;
 
     /**
      * 创建人ID
@@ -75,14 +75,6 @@ public class App implements Serializable {
         this.alias = alias;
     }
 
-    public String getSecret() {
-        return secret;
-    }
-
-    public void setSecret(String secret) {
-        this.secret = secret;
-    }
-
     public String getIcon() {
         return icon;
     }
@@ -97,6 +89,14 @@ public class App implements Serializable {
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    public Integer getTokenLife() {
+        return tokenLife;
+    }
+
+    public void setTokenLife(Integer tokenLife) {
+        this.tokenLife = tokenLife;
     }
 
     public String getCreatorUserId() {

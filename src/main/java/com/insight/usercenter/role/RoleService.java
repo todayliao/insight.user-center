@@ -1,9 +1,10 @@
 package com.insight.usercenter.role;
 
-import com.insight.usercenter.common.dto.AccessToken;
+import com.insight.usercenter.common.Token;
 import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.Member;
 import com.insight.usercenter.common.entity.Role;
+import com.insight.usercenter.role.dto.RoleDTO;
 
 import java.util.List;
 
@@ -17,28 +18,29 @@ public interface RoleService {
     /**
      * 获取指定应用的全部角色
      *
-     * @param token 访问令牌
-     * @param appId 应用ID
+     * @param token Token
+     * @param role  角色查询实体对象
      * @return Reply
      */
-    Reply getRoles(AccessToken token, String appId);
+    Reply getRoles(Token token, RoleDTO role);
 
     /**
      * 获取指定的角色
      *
+     * @param token  Token
      * @param roleId 角色ID
      * @return Reply
      */
-    Reply getRole(String roleId);
+    Reply getRole(Token token, String roleId);
 
     /**
      * 新增角色
      *
-     * @param token 访问令牌
+     * @param token Token
      * @param role  角色实体数据
      * @return Reply
      */
-    Reply addRole(AccessToken token, Role role);
+    Reply addRole(Token token, Role role);
 
     /**
      * 删除角色
@@ -59,10 +61,11 @@ public interface RoleService {
     /**
      * 添加角色成员
      *
+     * @param token   Token
      * @param members 成员集合
      * @return Reply
      */
-    Reply addRoleMember(List<Member> members);
+    Reply addRoleMembers(Token token, List<Member> members);
 
     /**
      * 移除角色成员
@@ -76,14 +79,6 @@ public interface RoleService {
     /**
      * 批量移除角色成员
      *
-     * @param userId 用户Id
-     * @return Reply
-     */
-    Reply removeRoleMemberByUserId(String userId);
-
-    /**
-     * 批量移除角色成员
-     *
      * @param list 成员关系ID集合
      * @return Reply
      */
@@ -92,9 +87,10 @@ public interface RoleService {
     /**
      * 获取指定名称的角色的成员用户
      *
-     * @param token    访问令牌
+     * @param token    Token
+     * @param appId    应用ID
      * @param roleName 角色名称
      * @return Reply
      */
-    Reply getRoleUsersByName(AccessToken token, String roleName);
+    Reply getRoleUsersByName(Token token, String appId, String roleName);
 }

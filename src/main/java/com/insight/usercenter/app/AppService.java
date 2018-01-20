@@ -1,10 +1,11 @@
 package com.insight.usercenter.app;
 
-import com.insight.usercenter.common.dto.AccessToken;
+
+import com.insight.usercenter.common.Token;
 import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.App;
 import com.insight.usercenter.common.entity.Function;
-
+import com.insight.usercenter.common.entity.Navigator;
 
 /**
  * @author 宣炳刚
@@ -21,12 +22,12 @@ public interface AppService {
     Reply getApps();
 
     /**
-     * 获取指定应用的全部模块组、模块及功能
+     * 获取指定应用的全部导航及功能
      *
      * @param appId 应用ID
      * @return Reply
      */
-    Reply getModules(String appId);
+    Reply getApp(String appId);
 
     /**
      * 新增应用
@@ -35,25 +36,16 @@ public interface AppService {
      * @param app   应用数据
      * @return Reply
      */
-    Reply addApp(AccessToken token, App app);
+    Reply addApp(Token token, App app);
 
     /**
-     * 新增模块组
+     * 新增导航
      *
-     * @param token 访问令牌
-     * @param group 模块组数据
+     * @param token     访问令牌
+     * @param navigator 导航数据
      * @return Reply
      */
-    Reply addModuleGroup(AccessToken token, Function group);
-
-    /**
-     * 新增模块
-     *
-     * @param token  访问令牌
-     * @param module 模块数据
-     * @return Reply
-     */
-    Reply addModule(AccessToken token, Function module);
+    Reply addNavigator(Token token, Navigator navigator);
 
     /**
      * 新增模块功能
@@ -62,7 +54,7 @@ public interface AppService {
      * @param function 模块功能数据
      * @return Reply
      */
-    Reply addFunction(AccessToken token, Function function);
+    Reply addFunction(Token token, Function function);
 
     /**
      * 删除应用
@@ -73,20 +65,12 @@ public interface AppService {
     Reply deleteApp(String appId);
 
     /**
-     * 删除模块组
+     * 删除导航
      *
-     * @param groupId 模块组ID
+     * @param navigatorId 模块组ID
      * @return Reply
      */
-    Reply deleteModuleGroup(String groupId);
-
-    /**
-     * 删除模块
-     *
-     * @param moduleId 模块ID
-     * @return Reply
-     */
-    Reply deleteModule(String moduleId);
+    Reply deleteNavigator(String navigatorId);
 
     /**
      * 删除模块功能
@@ -105,20 +89,12 @@ public interface AppService {
     Reply updateApp(App app);
 
     /**
-     * 更新模块组
+     * 更新导航
      *
-     * @param group 模块组数据
+     * @param navigator 模块组数据
      * @return Reply
      */
-    Reply updateModuleGroup(Function group);
-
-    /**
-     * 更新模块
-     *
-     * @param module 模块数据
-     * @return Reply
-     */
-    Reply updateModule(Function module);
+    Reply updateNavigator(Navigator navigator);
 
     /**
      * 更新模块功能

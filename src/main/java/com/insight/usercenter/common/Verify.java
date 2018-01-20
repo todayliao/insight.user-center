@@ -1,11 +1,10 @@
 package com.insight.usercenter.common;
 
 import com.insight.usercenter.common.dto.AccessToken;
-import com.insight.usercenter.common.dto.ApplicationContextHolder;
 import com.insight.usercenter.common.dto.Reply;
-import com.insight.usercenter.common.entity.Token;
-import com.insight.usercenter.common.utils.JsonUtils;
+import com.insight.usercenter.common.utils.Json;
 import com.insight.usercenter.common.utils.ReplyHelper;
+import com.insight.usercenter.common.utils.common.ApplicationContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,38 +17,12 @@ public class Verify {
     private final Core core;
     private final AccessToken accessToken;
     private final Logger logger;
-
-    private Token basis;
+    private final Token basis;
 
     /**
      * 令牌ID
      */
     private String tokenId;
-
-    /**
-     * 应用ID
-     */
-    private String appId;
-
-    /**
-     * 账户ID
-     */
-    private String accountId;
-
-    /**
-     * 用户ID
-     */
-    private String userId;
-
-    /**
-     * 用户名
-     */
-    private String userName;
-
-    /**
-     * 登录部门ID
-     */
-    private String deptId;
 
     /**
      * 构造函数
@@ -61,13 +34,21 @@ public class Verify {
         logger = LoggerFactory.getLogger(this.getClass());
 
         // 初始化参数
-        accessToken = JsonUtils.toAccessToken(token);
+        accessToken = Json.toAccessToken(token);
         tokenId = accessToken.getId();
-        appId = accessToken.getAppId();
-        accountId = accessToken.getAccountId();
-        userId = accessToken.getUserId();
-        userName = accessToken.getUserName();
-        deptId = accessToken.getDeptId();
+
+        basis = core.getToken(accessToken.getUserId());
+    }
+
+    /**
+     * 获取功能的Key(如用户ID为当前用户,则返回空)
+     *
+     * @param userId   用户ID
+     * @param function 功能的Key
+     * @return 功能的Key
+     */
+    public String getFunction(String userId, String function) {
+        return basis != null && basis.getUserId().equals(userId) ? null : function;
     }
 
     /**
@@ -90,39 +71,36 @@ public class Verify {
             return ReplyHelper.invalidToken();
         }
 
+        if (basis == null) {
+            return ReplyHelper.invalidToken();
+        }
+
         // 验证令牌
-        basis = core.getToken(userId);
-        if (basis == null || core.isFailure(basis) || core.isInvalid(basis)) {
-            return ReplyHelper.invalidToken();
-        }
-
-        Boolean isOriginal = (basis.getUserType() == 0 || basis.containsCode(tokenId))
-                && (basis.getAppId() == null || basis.getAppId().equals(appId))
-                && (basis.getAccountId() == null || basis.getAccountId().equals(accountId))
-                && (basis.getUserName() == null || basis.getUserName().equals(userName));
-        if (!isOriginal) {
-            return ReplyHelper.invalidToken();
-        }
-
-        if (core.isExpiry(basis)) {
+        basis.selectKeys(tokenId);
+        if (basis.isExpiry()) {
             return ReplyHelper.expiredToken();
         }
 
-        Boolean isPermit = core.verifyToken(basis, accessToken.getSecret(), 1);
-        if (!isPermit) {
+        if (basis.isFailure()) {
             return ReplyHelper.invalidToken();
         }
 
-        appId = basis.getAppId();
-        accountId = basis.getAccountId();
+        if (basis.userIsInvalid()) {
+            core.setTokenCache(basis);
+            return ReplyHelper.fail("用户被禁止登录");
+        }
 
+        Boolean isPermit = basis.verifyToken(accessToken.getSecret(), 1);
+        if (!isPermit) {
+            core.setTokenCache(basis);
+            return ReplyHelper.invalidToken();
+        }
         // 无需鉴权,返回成功
         if (function == null || function.isEmpty()) {
             return ReplyHelper.success();
         }
-
         // 进行鉴权,返回鉴权结果
-        isPermit = core.isPermit(appId, userId, deptId, function);
+        isPermit = core.isPermit(basis, function);
         if (isPermit) {
             return ReplyHelper.success();
         }
@@ -141,51 +119,6 @@ public class Verify {
     }
 
     /**
-     * 获取应用ID
-     *
-     * @return
-     */
-    public String getAppId() {
-        return appId;
-    }
-
-    /**
-     * 获取所属账户ID
-     *
-     * @return 所属账户ID
-     */
-    public String getAccountId() {
-        return accountId;
-    }
-
-    /**
-     * 获取用户ID
-     *
-     * @return 用户ID
-     */
-    public String getUserId() {
-        return userId;
-    }
-
-    /**
-     * 获取用户名
-     *
-     * @return 用户名
-     */
-    public String getUserName() {
-        return userName;
-    }
-
-    /**
-     * 获取当前登录部门ID
-     *
-     * @return 当前登录部门ID
-     */
-    public String getDeptId() {
-        return deptId;
-    }
-
-    /**
      * 获取缓存中的令牌
      *
      * @return Token
@@ -193,5 +126,4 @@ public class Verify {
     public Token getBasis() {
         return basis;
     }
-
 }

@@ -1,11 +1,13 @@
 package com.insight.usercenter.auth;
 
-import com.insight.usercenter.common.dto.AccessToken;
-import com.insight.usercenter.common.dto.RefreshToken;
+
+import com.insight.usercenter.auth.dto.RefreshToken;
+import com.insight.usercenter.auth.dto.UserInfo;
+import com.insight.usercenter.common.Token;
 import com.insight.usercenter.common.dto.Reply;
+import com.insight.usercenter.common.entity.Device;
 
 import java.io.IOException;
-
 
 /**
  * @author 宣炳刚
@@ -17,33 +19,43 @@ public interface AuthService {
     /**
      * 获取Code
      *
-     * @param appId   应用ID
      * @param account 用户登录账号
      * @param type    登录类型(0:密码登录、1:验证码登录)
      * @return Reply
      */
-    Reply getCode(String appId, String account, int type);
+    Reply getCode(String account, int type);
 
     /**
      * 获取Token数据
      *
-     * @param appId     应用ID
-     * @param account   登录账号
-     * @param signature 签名
-     * @param deptId    登录部门ID
+     * @param account     登录账号
+     * @param signature   签名
+     * @param appId       应用ID
+     * @param deviceId    设备ID
+     * @param deviceModel 设备型号
      * @return Reply
      */
-    Reply getToken(String appId, String account, String signature, String deptId);
+    Reply getToken(String account, String signature, String appId, String deviceId, String deviceModel);
 
     /**
-     * 获取Token
+     * 通过微信授权码获取访问令牌
      *
-     * @param appId  应用ID
-     * @param openId 微信openId
+     * @param code        微信授权码
+     * @param weChatAppId 微信appId
+     * @param appId       应用ID
+     * @param deviceId    设备ID
+     * @param deviceModel 设备型号
      * @return Reply
-     * 正常：返回接口调用成功,通过data返回Token数据
      */
-    Reply getTokenByOpenId(String appId, String openId);
+    Reply getTokenWithWeChat(String code, String weChatAppId, String appId, String deviceId, String deviceModel);
+
+    /**
+     * 通过微信用户信息获取访问令牌
+     *
+     * @param info 用户信息对象实体
+     * @return Reply
+     */
+    Reply getTokenWithUserInfo(UserInfo info);
 
     /**
      * 刷新访问令牌过期时间
@@ -54,39 +66,59 @@ public interface AuthService {
     Reply refreshToken(RefreshToken token);
 
     /**
-     * 用户身份验证及鉴权(需要传入function)
+     * 用户账号离线
      *
-     * @param token    访问令牌字符串
-     * @param function 功能ID或URL
+     * @param token   Token
+     * @param tokenId 令牌ID
      * @return Reply
      */
-    Reply verifyToken(String token, String function);
+    Reply deleteToken(Token token, String tokenId);
+
+    /**
+     * 为当前用户绑定当前使用的设备信息
+     *
+     * @param userId 用户ID
+     * @param device 设备信息
+     * @return Reply
+     */
+    Reply setDevice(String userId, Device device);
+
+    /**
+     * 为当前Token设置租户ID
+     *
+     * @param token    Token
+     * @param tenantId 租户ID
+     * @param deptId   登录部门ID
+     * @return Reply
+     */
+    Reply setTenantId(Token token, String tenantId, String deptId);
 
     /**
      * 验证支付密码
      *
-     * @param token       访问令牌
+     * @param token       Token
      * @param payPassword 支付密码(MD5)
      * @return Reply
      */
-    Reply verifyPayPassword(String token, String payPassword);
+    Reply verifyPayPassword(Token token, String payPassword);
 
     /**
      * 获取用户导航栏
      *
-     * @param token 访问令牌
+     * @param token Token
+     * @param appId 应用ID
      * @return Reply
      */
-    Reply getNavigators(String token);
+    Reply getNavigators(Token token, String appId);
 
     /**
      * 获取业务模块的功能(及对用户的授权情况)
      *
-     * @param token    访问令牌
-     * @param moduleId 业务模块ID
+     * @param token       Token
+     * @param navigatorId 导航ID
      * @return Reply
      */
-    Reply getModuleFunctions(String token, String moduleId);
+    Reply getModuleFunctions(Token token, String navigatorId);
 
     /**
      * 生成短信验证码
@@ -113,12 +145,11 @@ public interface AuthService {
     /**
      * 获取图形验证图片
      *
-     * @param token  访问令牌
      * @param mobile 手机号
      * @return Reply
-     * @throws IOException
+     * @throws IOException IO异常
      */
-    Reply getVerifyPic(AccessToken token, String mobile) throws IOException;
+    Reply getVerifyPic(String mobile) throws IOException;
 
     /**
      * 验证图形验证答案

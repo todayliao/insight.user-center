@@ -1,7 +1,7 @@
 package com.insight.usercenter;
 
-import com.insight.usercenter.common.dto.Message;
-import com.insight.usercenter.common.utils.SmsUtils;
+import com.insight.usercenter.common.utils.message.Message;
+import com.insight.usercenter.common.utils.message.SmsUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;

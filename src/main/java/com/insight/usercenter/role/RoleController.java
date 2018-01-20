@@ -1,10 +1,13 @@
 package com.insight.usercenter.role;
 
-import com.insight.usercenter.common.dto.AccessToken;
+import com.insight.usercenter.common.Verify;
 import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.Member;
 import com.insight.usercenter.common.entity.Role;
-import com.insight.usercenter.common.utils.JsonUtils;
+import com.insight.usercenter.common.utils.ReplyHelper;
+import com.insight.usercenter.common.utils.Util;
+import com.insight.usercenter.common.utils.redis.CallManage;
+import com.insight.usercenter.role.dto.RoleDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,23 +18,31 @@ import java.util.List;
  * @date 2017/9/15
  * @remark 角色管理服务控制器
  */
+@CrossOrigin
 @RestController
 @RequestMapping("/roleapi")
 public class RoleController {
     @Autowired
     RoleService service;
+    @Autowired
+    CallManage callManage;
 
     /**
      * 获取指定应用的全部角色
      *
      * @param token 访问令牌
-     * @param appId 应用ID
+     * @param role  角色查询实体对象
      * @return Reply
      */
     @GetMapping("/v1.1/roles")
-    public Reply getRoles(@RequestHeader("Authorization") String token, @RequestParam(value = "appid", required = false) String appId) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return service.getRoles(accessToken, appId);
+    public Reply getRoles(@RequestHeader("Authorization") String token, RoleDTO role) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("getRoles");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        return service.getRoles(verify.getBasis(), role);
     }
 
     /**
@@ -41,8 +52,14 @@ public class RoleController {
      * @return Reply
      */
     @GetMapping("/v1.1/roles/{id}")
-    public Reply getRole(@PathVariable("id") String roleId) {
-        return service.getRole(roleId);
+    public Reply getRole(@RequestHeader("Authorization") String token, @PathVariable("id") String roleId) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("getRoles");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        return service.getRole(verify.getBasis(), roleId);
     }
 
     /**
@@ -54,8 +71,20 @@ public class RoleController {
      */
     @PostMapping("/v1.1/roles")
     public Reply addRole(@RequestHeader("Authorization") String token, @RequestBody Role role) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return service.addRole(accessToken, role);
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("addRole");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        // 限流,每客户端每30秒可访问一次
+        String key = Util.md5("addRole" + verify.getTokenId());
+        Integer surplus = callManage.getSurplus(key, 30);
+        if (surplus > 0) {
+            return ReplyHelper.tooOften(surplus);
+        }
+
+        return service.addRole(verify.getBasis(), role);
     }
 
     /**
@@ -65,7 +94,13 @@ public class RoleController {
      * @return Reply
      */
     @DeleteMapping("/v1.1/roles/{id}")
-    public Reply deleteRole(@PathVariable("id") String roleId) {
+    public Reply deleteRole(@RequestHeader("Authorization") String token, @PathVariable("id") String roleId) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("deleteRole");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
         return service.deleteRole(roleId);
     }
 
@@ -76,7 +111,13 @@ public class RoleController {
      * @return Reply
      */
     @PutMapping("/v1.1/roles/{id}")
-    public Reply updateRole(@RequestBody Role role) {
+    public Reply updateRole(@RequestHeader("Authorization") String token, @RequestBody Role role) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("updateRole");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
         return service.updateRole(role);
     }
 
@@ -87,20 +128,14 @@ public class RoleController {
      * @return Reply
      */
     @PostMapping("/v1.1/roles/{id}/members")
-    public Reply addRoleMember(@RequestBody List<Member> members) {
-        return service.addRoleMember(members);
-    }
+    public Reply addRoleMember(@RequestHeader("Authorization") String token, @RequestBody List<Member> members) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("addRoleMembers");
+        if (!result.getSuccess()) {
+            return result;
+        }
 
-    /**
-     * 移除角色成员
-     *
-     * @param userId 用户ID
-     * @return Reply
-     * @Auth 郑昊
-     */
-    @DeleteMapping("/v1.1/roles/members/{userid}")
-    public Reply removeRoleMember(@PathVariable("userid") String userId) {
-        return service.removeRoleMemberByUserId(userId);
+        return service.addRoleMembers(verify.getBasis(), members);
     }
 
     /**
@@ -111,7 +146,13 @@ public class RoleController {
      * @return Reply
      */
     @DeleteMapping("/v1.1/roles/{id}/members/{userid}")
-    public Reply removeRoleMember(@PathVariable("id") String roleId, @PathVariable("userid") String userId) {
+    public Reply removeRoleMember(@RequestHeader("Authorization") String token, @PathVariable("id") String roleId, @PathVariable("userid") String userId) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("removeRoleMember");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
         return service.removeRoleMember(roleId, userId);
     }
 
@@ -122,7 +163,13 @@ public class RoleController {
      * @return Reply
      */
     @DeleteMapping("/v1.1/roles/{id}/members")
-    public Reply removeRoleMembers(@RequestBody List<String> list) {
+    public Reply removeRoleMembers(@RequestHeader("Authorization") String token, @RequestBody List<String> list) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("removeRoleMembers");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
         return service.removeRoleMembers(list);
     }
 
@@ -134,8 +181,13 @@ public class RoleController {
      * @return Reply
      */
     @GetMapping("/v1.1/roles/{name}/users")
-    public Reply getRoleUsersByName(@RequestHeader("Authorization") String token, @PathVariable("name") String roleName) {
-        AccessToken accessToken = JsonUtils.toAccessToken(token);
-        return service.getRoleUsersByName(accessToken, roleName);
+    public Reply getRoleUsersByName(@RequestHeader("Authorization") String token, @RequestParam("appid") String appId, @PathVariable("name") String roleName) {
+        Verify verify = new Verify(token);
+        Reply result = verify.compare("getRoleUsersByName");
+        if (!result.getSuccess()) {
+            return result;
+        }
+
+        return service.getRoleUsersByName(verify.getBasis(), appId, roleName);
     }
 }

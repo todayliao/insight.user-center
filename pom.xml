@@ -117,6 +117,36 @@
             <artifactId>aspectjweaver</artifactId>
             <version>1.5.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.9</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper</artifactId>
+            <version>4.1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.qiniu</groupId>
+            <artifactId>qiniu-java-sdk</artifactId>
+            <version>7.2.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.5.1</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -145,7 +175,6 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-
                 <includes>
                     <include>**/*</include>
                 </includes>
@@ -153,32 +182,5 @@
             </resource>
         </resources>
     </build>
-
-    <profiles>
-        <profile>
-            <!-- 本地环境 -->
-            <id>local</id>
-            <properties>
-                <profiles.active>local</profiles.active>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <!-- 开发环境 -->
-            <id>dev</id>
-            <properties>
-                <profiles.active>dev</profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <!-- 生产环境 -->
-            <id>pro</id>
-            <properties>
-                <profiles.active>pro</profiles.active>
-            </properties>
-        </profile>
-    </profiles>
 
 </project>

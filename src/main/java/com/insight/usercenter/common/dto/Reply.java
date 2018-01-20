@@ -1,5 +1,8 @@
 package com.insight.usercenter.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.insight.usercenter.common.utils.Json;
+
 import java.io.Serializable;
 
 /**
@@ -35,7 +38,62 @@ public final class Reply implements Serializable {
      */
     private Object option;
 
+    /**
+     * 无参构造函数
+     */
     public Reply() {
+    }
+
+    /**
+     * 读取Data承载中的对象数据
+     *
+     * @param type 对象类型
+     * @param <T>  泛型参数
+     * @return 对象数据
+     */
+    @JsonIgnore
+    public <T> T getBeanFromData(Class<T> type) {
+        String json = Json.toJson(data);
+        return Json.toBean(json, type);
+    }
+
+    /**
+     * 读取Data承载中的对象集合数据
+     *
+     * @param type 对象类型
+     * @param <T>  泛型参数
+     * @return 对象集合数据
+     */
+    @JsonIgnore
+    public <T> T getListFromData(Class<?>... type) {
+        String json = Json.toJson(data);
+        return Json.toList(json, type);
+    }
+
+    /**
+     * 读取Option中承载的对象数据
+     *
+     * @param type 对象类型
+     * @param <T>  泛型参数
+     * @return 对象数据
+     */
+    @JsonIgnore
+    public <T> T getBeanFromOption(Class<T> type) {
+        String json = Json.toJson(option);
+        return Json.toBean(json, type);
+    }
+
+    /**
+     * 读取Option中承载的对象集合数据
+     *
+     * @param type 对象类型
+     * @param <T>  泛型参数
+     * @return 对象集合数据
+     */
+    @JsonIgnore
+    public <T> T getListFromOption(Class<?>... type) {
+        String json = Json.toJson(option);
+        return Json.toList(json, type);
     }
 
     public Boolean getSuccess() {

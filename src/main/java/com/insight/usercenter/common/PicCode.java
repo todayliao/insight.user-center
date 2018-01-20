@@ -1,8 +1,7 @@
 package com.insight.usercenter.common;
 
-
-import com.insight.usercenter.common.utils.Generator;
-import com.insight.usercenter.common.utils.encrypt.Base64Encryptor;
+import com.insight.usercenter.common.utils.Util;
+import com.insight.usercenter.common.utils.common.Base64Encryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -28,11 +27,12 @@ public class PicCode {
     /**
      * 生成验证问题图片
      *
-     * @param mobile 手机号
+     * @param fingerprint 客户端标识
+     * @param mobile      手机号
      * @return Base64编码的验证问题图片
      * @throws IOException
      */
-    public String generateCode(String tokenId, String mobile) throws IOException {
+    public String generateCode(String fingerprint, String mobile) throws IOException {
         Random random = new Random();
 
         // 初始化参数
@@ -106,12 +106,13 @@ public class PicCode {
         g.dispose();
 
         // 用手机号和验证答案的Hash值作为Key,手机号为Value,保存到Redis
-        String key = Generator.md5(mobile + randomCode);
-        String parentKey = Generator.md5(tokenId + "pic");
+        String key = Util.md5(mobile + randomCode);
+        String parentKey = Util.md5(fingerprint + "pic");
         String lastKey = redis.opsForValue().get(parentKey);
         if (lastKey != null && !lastKey.isEmpty() && redis.hasKey(lastKey)) {
             redis.delete(lastKey);
         }
+
         redis.opsForValue().set(key, mobile, 5, TimeUnit.MINUTES);
         redis.opsForValue().set(parentKey, key, 5, TimeUnit.MINUTES);
 
@@ -119,6 +120,7 @@ public class PicCode {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         ImageIO.write(buffImg, "jpeg", output);
         output.close();
+
         return Base64Encryptor.encode(output.toByteArray());
     }
 }

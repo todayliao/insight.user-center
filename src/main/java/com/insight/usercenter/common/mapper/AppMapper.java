@@ -2,6 +2,7 @@ package com.insight.usercenter.common.mapper;
 
 import com.insight.usercenter.common.entity.App;
 import com.insight.usercenter.common.entity.Function;
+import com.insight.usercenter.common.entity.Navigator;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -19,34 +20,29 @@ public interface AppMapper extends Mapper {
      *
      * @return 应用集合
      */
-    @Select("select * from application order by created_time;")
+    @Select("SELECT * FROM ucs_application ORDER BY created_time DESC;")
     List<App> getApps();
 
     /**
-     * 获取指定应用的全部模块组、模块及功能
+     * 查询指定ID的应用信息
+     *
+     * @param appId 应用ID
+     * @return 应用信息
+     */
+    @Select("SELECT * FROM ucs_application WHERE id=#{appId};")
+    App getApp(String appId);
+
+    /**
+     * 获取指定应用的全部导航及功能
      *
      * @param appId 应用ID
      * @return 功能集合
      */
-    @Results({@Result(property = "invisible", column = "is_invisible")})
-    @Select("SELECT t.* FROM (" +
-            "SELECT id,application_id AS parent_id,1 AS type,`index`,`name`,NULL AS alias,icon,NULL AS url,remark,NULL AS is_invisible " +
-            "FROM module_group WHERE application_id=#{id} UNION " +
-            "SELECT m.id,g.id AS parent_id,2 AS type,m.`index`,m.`name`,NULL AS alias,m.icon,m.url,m.remark,NULL AS is_invisible " +
-            "FROM module_group g JOIN module m ON m.group_id=g.id WHERE g.application_id=#{id} UNION " +
-            "SELECT f.id,m.id AS parent_id,3 AS type,f.`index`,f.`name`,f.alias,f.icon,f.url,f.remark,f.is_invisible " +
-            "FROM module_group g JOIN module m ON m.group_id=g.id JOIN module_function f ON f.module_id=m.id WHERE g.application_id=#{id}" +
-            ") t ORDER BY t.type, t.parent_id, t.`index`;")
-    List<Function> getModules(@Param("id") String appId);
-
-    /**
-     * 获取指定功能对应的接口URL集合
-     *
-     * @param alias 功能别名
-     * @return 接口URL集合
-     */
-    @Select("SELECT url FROM function_url WHERE function=#{alias}")
-    List<String> getFunctionUrls(String alias);
+    @Select("SELECT * FROM (SELECT id,parent_id,type,`index`,`name`,NULL AS alias,icon,url, NULL as interfaces,remark,NULL AS is_invisible " +
+            "FROM ucs_navigator WHERE application_id=#{appId} UNION " +
+            "SELECT id,navigator_id AS parent_id,3 AS type,`index`,`name`,alias,icon,url,interfaces,remark,is_invisible " +
+            "FROM ucs_function WHERE application_id=#{appId}) l ORDER BY type,parent_id,`index`;")
+    List<Function> getNavigators(String appId);
 
     /**
      * 新增应用
@@ -54,29 +50,28 @@ public interface AppMapper extends Mapper {
      * @param app 应用实体数据
      * @return 受影响行数
      */
-    @Insert("insert application (id,`name`,alias,secret,icon,host,creator_user_id) " +
-            "VALUES (#{id},#{name},#{alias},#{secret},#{icon},#{host},#{creatorUserId});")
+    @Insert("INSERT ucs_application (id,`name`,alias,icon,host,creator_user_id) " +
+            "VALUES (#{id},#{name},#{alias},#{icon},#{host},#{creatorUserId});")
     Integer addApp(App app);
 
     /**
-     * 新增模块组
+     * 新增导航
      *
-     * @param group 功能实体数据
+     * @param navigator 导航数据
      * @return 受影响行数
      */
-    @Insert("insert module_group (id,application_id,`index`,`name`,icon,remark,creator_user_id) " +
-            "VALUES (#{id},#{parentId},#{index},#{name},#{icon},#{remark},#{creatorUserId});")
-    Integer addModuleGroup(Function group);
+    @Insert("INSERT ucs_navigator (id,application_id,parent_id,type,`index`,`name`,icon,url,remark,creator_user_id) " +
+            "VALUES (#{id},#{applicationId},#{parentId},#{type},#{index},#{name},#{icon},#{url},#{remark},#{creatorUserId});")
+    Integer addNavigator(Navigator navigator);
 
     /**
-     * 新增模块
+     * 查询模块功能
      *
-     * @param module 功能实体数据
+     * @param functionId 模块功能id
      * @return 受影响行数
      */
-    @Insert("insert module (id,group_id,`index`,`name`,icon,url,remark,creator_user_id) " +
-            "VALUES (#{id},#{parentId},#{index},#{name},#{icon},#{url},#{remark},#{creatorUserId});")
-    Integer addModule(Function module);
+    @Select("SELECT * from ucs_function WHERE id=#{functionId}")
+    Function getFunction(String functionId);
 
     /**
      * 新增模块功能
@@ -84,22 +79,9 @@ public interface AppMapper extends Mapper {
      * @param function 功能实体数据
      * @return 受影响行数
      */
-    @Insert("insert module_function (id,module_id,`index`,`name`,alias,icon,url,remark,begin_group,hide_text,is_invisible,creator_user_id) " +
-            "VALUES (#{id},#{parentId},#{index},#{name},#{alias},#{icon},#{url},#{remark},#{beginGroup},#{hideText},#{invisible},#{creatorUserId});")
+    @Insert("INSERT ucs_function (id,application_id,navigator_id,`index`,`name`,alias,icon,url,interfaces,remark,begin_group,hide_text,is_invisible,creator_user_id) " +
+            "VALUES (#{id},#{applicationId},#{parentId},#{index},#{name},#{alias},#{icon},#{url},#{interfaces},#{remark},#{beginGroup},#{hideText},#{invisible},#{creatorUserId});")
     Integer addFunction(Function function);
-
-    /**
-     * 新增功能-接口URL对应关系
-     *
-     * @param alias 接口URL集合
-     * @param urls  接口URL集合
-     * @return 受影响行数
-     */
-    @Insert("<script>INSERT function_url(id, function, url) VALUES " +
-            "<foreach collection = \"urls\" item = \"item\" index = \"index\" separator = \",\"> " +
-            "(REPLACE(uuid(),'-',''),#{alias},#{item}) " +
-            "</foreach></script>")
-    Integer addFunctionUrl(@Param("alias") String alias, @Param("urls") List<String> urls);
 
     /**
      * 删除指定ID的应用
@@ -107,30 +89,18 @@ public interface AppMapper extends Mapper {
      * @param appId 应用ID
      * @return 受影响行数
      */
-    @Delete("DELETE a,g,m,f,r FROM application a LEFT JOIN module_group g ON g.application_id=a.id " +
-            "LEFT JOIN module m ON m.group_id=g.id LEFT JOIN module_function f ON f.module_id=m.id " +
-            "LEFT JOIN function_url r ON r.function=f.alias WHERE a.id=#{id};")
-    Integer deleteAppById(@Param("id") String appId);
+    @Delete("DELETE a,n,f FROM ucs_application a LEFT JOIN ucs_navigator n ON n.application_id=a.id " +
+            "LEFT JOIN ucs_function f ON f.navigator_id=n.id WHERE a.id=#{appId};")
+    Integer deleteAppById(String appId);
 
     /**
-     * 删除指定ID的模块组
+     * 删除指定ID的导航
      *
-     * @param groupId 模块组ID
+     * @param navigatorId 导航ID
      * @return 受影响行数
      */
-    @Delete("DELETE g,m,f,r FROM module_group g LEFT JOIN module m ON m.group_id=g.id " +
-            "LEFT JOIN module_function f ON f.module_id=m.id LEFT JOIN function_url r ON r.function=f.alias WHERE g.id=#{id};")
-    Integer deleteGroupById(@Param("id") String groupId);
-
-    /**
-     * 删除指定ID的模块
-     *
-     * @param moduleId 模块ID
-     * @return 受影响行数
-     */
-    @Delete("DELETE m,f,r FROM module m LEFT JOIN module_function f ON f.module_id=m.id " +
-            "LEFT JOIN function_url r ON r.function=f.alias WHERE m.id=#{id};")
-    Integer deleteModuleById(@Param("id") String moduleId);
+    @Delete("DELETE n,f FROM ucs_navigator n LEFT JOIN ucs_function f ON f.navigator_id=n.id WHERE n.id=#{navigatorId};")
+    Integer deleteNavigatorById(String navigatorId);
 
     /**
      * 删除指定ID的模块功能
@@ -138,17 +108,8 @@ public interface AppMapper extends Mapper {
      * @param functionId 模块功能ID
      * @return 受影响行数
      */
-    @Delete("DELETE f,r FROM module_function f LEFT JOIN function_url r ON r.function=f.alias WHERE f.id=#{id};")
-    Integer deleteFunctionById(@Param("id") String functionId);
-
-    /**
-     * 删除指定别名的接口URL关系
-     *
-     * @param alias 功能别名
-     * @return 受影响行数
-     */
-    @Delete("DELETE FROM function_url WHERE function=#{alias};")
-    Integer deleteFunctionUrl(String alias);
+    @Delete("DELETE FROM ucs_function WHERE id=#{functionId};")
+    Integer deleteFunctionById(String functionId);
 
     /**
      * 更新应用
@@ -156,26 +117,18 @@ public interface AppMapper extends Mapper {
      * @param app 应用数据
      * @return 受影响行数
      */
-    @Update("update application set `name`=#{name},alias=#{alias},secret=#{secret},icon=#{icon},host=#{host} where id=#{id};")
+    @Update("UPDATE ucs_application SET `name`=#{name},alias=#{alias},icon=#{icon},host=#{host} WHERE id=#{id};")
     Integer updateApp(App app);
 
     /**
-     * 更新模块组
+     * 更新导航
      *
-     * @param group 模块组数据
+     * @param navigator 导航数据
      * @return 受影响行数
      */
-    @Update("update module_group set `index`=#{index},`name`=#{name},icon=#{icon},remark=#{remark} where id=#{id};")
-    Integer updateModuleGroup(Function group);
-
-    /**
-     * 更新模块
-     *
-     * @param module 模块数据
-     * @return 受影响行数
-     */
-    @Update("update module set `index`=#{index},`name`=#{name},icon=#{icon},url=#{url},remark=#{remark} where id=#{id};")
-    Integer updateModule(Function module);
+    @Update("UPDATE ucs_navigator SET application_id=#{applicationId},parent_id=#{parentId},type=#{type}," +
+            "`index`=#{index},`name`=#{name},icon=#{icon},url=#{url},remark=#{remark} WHERE id=#{id};")
+    Integer updateNavigator(Navigator navigator);
 
     /**
      * 更新模块功能
@@ -183,7 +136,8 @@ public interface AppMapper extends Mapper {
      * @param function 模块功能数据
      * @return 受影响行数
      */
-    @Update("update module_function set `index`=#{index},`name`=#{name},alias=#{alias},icon=#{icon},url=#{url},remark=#{remark}," +
-            "begin_group=#{beginGroup},hide_text=#{hideText},is_invisible=#{invisible} where id=#{id};")
+    @Update("UPDATE ucs_function SET application_id=#{applicationId},navigator_id=#{parentId},`index`=#{index}," +
+            "`name`=#{name},alias=#{alias},icon=#{icon},url=#{url},interfaces=#{interfaces},remark=#{remark}," +
+            "begin_group=#{beginGroup},hide_text=#{hideText},is_invisible=#{invisible} WHERE id=#{id};")
     Integer updateFunction(Function function);
 }
