@@ -45,7 +45,7 @@ public class WeChatHelper {
      */
     public WeChatUser getUserInfo(String code, String weChatAppId, String secret) {
         String url = buildGetTokenUrl(code, weChatAppId, secret);
-        String tokenJson = HttpClientUtil.httpClientGet(url,null,"utf-8");
+        String tokenJson = HttpClientUtil.httpClientGet(url, null, "utf-8");
         if (!checkWeChatResult(tokenJson)) {
             return null;
         }
@@ -56,7 +56,7 @@ public class WeChatHelper {
         }
 
         url = buildGetUserInfoUrl(token.getOpenid(), token.getAccess_token());
-        String resultJson = HttpClientUtil.httpClientGet(url,null,"utf-8");
+        String resultJson = HttpClientUtil.httpClientGet(url, null, "utf-8");
         if (!checkWeChatResult(resultJson)) {
             return null;
         }

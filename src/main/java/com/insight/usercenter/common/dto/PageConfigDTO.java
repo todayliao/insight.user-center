@@ -8,8 +8,8 @@ import java.util.Date;
 /**
  * code by stock<chonglei>
  *
- * @Date 2017/11/7
  * @author chenleijun
+ * @Date 2017/11/7
  * @remark 分页类
  */
 public class PageConfigDTO implements Serializable {

@@ -8,7 +8,7 @@ import java.util.List;
  * @date 2018/1/5.
  * @remark 微信用户类
  */
-public class WeChatUser implements Serializable{
+public class WeChatUser implements Serializable {
     /**
      * 用户的唯一标识
      */

@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.insight.usercenter.common.utils.file.excel.ColumnName.Policy.*;
+import static com.insight.usercenter.common.utils.file.excel.ColumnName.Policy.Ignorable;
+import static com.insight.usercenter.common.utils.file.excel.ColumnName.Policy.Required;
 
 /**
  * @author 宣炳刚
@@ -337,7 +338,7 @@ public class ExcelHelper {
         for (int i = 0; i < list.size(); i++) {
             row = sheet.createRow(i + 1);
             T item = list.get(i);
-            if (item == null){
+            if (item == null) {
                 continue;
             }
 

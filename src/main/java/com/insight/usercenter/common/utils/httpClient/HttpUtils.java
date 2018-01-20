@@ -16,6 +16,7 @@ public class HttpUtils {
 
     /**
      * 根据url获取远程文件资源
+     *
      * @param url 访问地址
      * @return byte数组
      */

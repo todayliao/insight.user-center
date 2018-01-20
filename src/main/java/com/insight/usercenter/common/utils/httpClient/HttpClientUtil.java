@@ -50,7 +50,7 @@ public class HttpClientUtil {
      */
     public static final int SOCKET_TIMEOUT = 5 * SECONDS;
     /**
-     *  三次握手完成时间
+     * 三次握手完成时间
      */
     public static final int CONNECT_TIMEOUT = 10 * SECONDS;
     /**
@@ -64,6 +64,7 @@ public class HttpClientUtil {
 
     /**
      * 创建 httpclient
+     *
      * @return
      */
     public static HttpClient getApiHttpClient() {
@@ -88,6 +89,7 @@ public class HttpClientUtil {
 
     /**
      * http execute 执行http请求
+     *
      * @param request
      * @param resultEncode 返回编码
      * @return
@@ -110,24 +112,26 @@ public class HttpClientUtil {
 
     /**
      * http get请求
+     *
      * @param requestUri 请求URL
      * @return
      */
     public static String httpClientGet(String requestUri) {
-        return httpClientGet(requestUri, null,null);
+        return httpClientGet(requestUri, null, null);
     }
 
     /**
      * http get请求
-     * @param requestUri 请求URL
-     * @param headerParam 请求头参数
+     *
+     * @param requestUri   请求URL
+     * @param headerParam  请求头参数
      * @param resultEncode 返回值编码
      * @return
      */
     public static String httpClientGet(String requestUri, Map<String, String> headerParam, String resultEncode) {
         try {
             HttpGet httpGet = new HttpGet(requestUri);
-            Optional.ofNullable(headerParam).orElse(new HashMap<>(16)).forEach((k,v) -> httpGet.setHeader(k,v));
+            Optional.ofNullable(headerParam).orElse(new HashMap<>(16)).forEach((k, v) -> httpGet.setHeader(k, v));
             return httpClientExecute(httpGet, resultEncode);
         } catch (Exception e) {
             e.printStackTrace();
@@ -137,7 +141,8 @@ public class HttpClientUtil {
 
     /**
      * http post application/x-www-form-urlencoded
-     * @param requestUri 请求URL
+     *
+     * @param requestUri   请求URL
      * @param requestParam 请求参数
      * @return
      */
@@ -147,19 +152,20 @@ public class HttpClientUtil {
 
     /**
      * http post application/x-www-form-urlencoded
-     * @param requestUri 请求URL
-     * @param headerParam  请求头参数
-     * @param requestParam 请求参数
+     *
+     * @param requestUri    请求URL
+     * @param headerParam   请求头参数
+     * @param requestParam  请求参数
      * @param requestEncode 请求参数编码
-     * @param resultEncode 返回参数编码
+     * @param resultEncode  返回参数编码
      * @return
      */
-    public static String httpClientPost(String requestUri, Map<String, String> headerParam, Map<String, String> requestParam, String requestEncode,String resultEncode) {
+    public static String httpClientPost(String requestUri, Map<String, String> headerParam, Map<String, String> requestParam, String requestEncode, String resultEncode) {
         try {
             HttpPost httpPost = new HttpPost(requestUri);
-            Optional.ofNullable(headerParam).orElse(new HashMap<>(16)).forEach((k,v) -> httpPost.setHeader(k,v));
+            Optional.ofNullable(headerParam).orElse(new HashMap<>(16)).forEach((k, v) -> httpPost.setHeader(k, v));
             List<NameValuePair> nameValuePairList = new ArrayList<NameValuePair>();
-            Optional.ofNullable(requestParam).orElse(new HashMap<>(16)).forEach((k,v) -> nameValuePairList.add(new BasicNameValuePair(k, v)));
+            Optional.ofNullable(requestParam).orElse(new HashMap<>(16)).forEach((k, v) -> nameValuePairList.add(new BasicNameValuePair(k, v)));
             httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairList, requestEncode));
             return httpClientExecute(httpPost, resultEncode);
         } catch (Exception e) {
@@ -170,27 +176,29 @@ public class HttpClientUtil {
 
     /**
      * http post application/json
+     *
      * @param requestUri 请求URL
-     * @param assertion json字符串
+     * @param assertion  json字符串
      * @return
      */
-    public static String httpClientPostJson(String requestUri,  String assertion) {
-       return httpClientPostJson(requestUri, null, assertion, ContentType.APPLICATION_JSON, null);
+    public static String httpClientPostJson(String requestUri, String assertion) {
+        return httpClientPostJson(requestUri, null, assertion, ContentType.APPLICATION_JSON, null);
     }
 
     /**
      * http post application/json
-     * @param requestUri 请求URL
-     * @param headerParam 请求头参数
-     * @param assertion json字符串
+     *
+     * @param requestUri   请求URL
+     * @param headerParam  请求头参数
+     * @param assertion    json字符串
      * @param contentType
      * @param resultEncode 返回值编码
      * @return
      */
-    public static String httpClientPostJson(String requestUri, Map<String, String> headerParam, String assertion,ContentType contentType, String resultEncode) {
+    public static String httpClientPostJson(String requestUri, Map<String, String> headerParam, String assertion, ContentType contentType, String resultEncode) {
         try {
             HttpPost httpPost = new HttpPost(requestUri);
-            Optional.ofNullable(headerParam).orElse(new HashMap<>(16)).forEach((k,v) -> httpPost.setHeader(k,v));
+            Optional.ofNullable(headerParam).orElse(new HashMap<>(16)).forEach((k, v) -> httpPost.setHeader(k, v));
             HttpEntity httpEntity = new StringEntity(assertion, contentType);
             httpPost.setEntity(httpEntity);
             return httpClientExecute(httpPost, resultEncode);
@@ -202,61 +210,66 @@ public class HttpClientUtil {
 
     /**
      * http post form-data
-     * @param requestUri 请求url
+     *
+     * @param requestUri   请求url
      * @param requestParam 请求入参
      * @return
      */
-    public static String httpClientPostFormData(String requestUri,  Map<String,String> requestParam) {
+    public static String httpClientPostFormData(String requestUri, Map<String, String> requestParam) {
 
         return httpClientPostFormData(requestUri, null, requestParam);
     }
+
     /**
      * http post form-data
-     * @param requestUri 请求url
-     * @param headerParam 请求头参数
+     *
+     * @param requestUri   请求url
+     * @param headerParam  请求头参数
      * @param requestParam 请求入参
      * @return
      */
-    public static String httpClientPostFormData(String requestUri, Map<String, String> headerParam, Map<String,String> requestParam) {
+    public static String httpClientPostFormData(String requestUri, Map<String, String> headerParam, Map<String, String> requestParam) {
 
         return httpClientPostFormData(requestUri, headerParam, requestParam, null, null);
     }
 
     /**
      * http post form-data /multipart/form-data
-     * @param requestUri 请求url
-     * @param headerParam 请求头参数
+     *
+     * @param requestUri   请求url
+     * @param headerParam  请求头参数
      * @param requestParam 请求参数
-     * @param fileName 文件参数名
-     * @param file 文件
+     * @param fileName     文件参数名
+     * @param file         文件
      * @return
      */
-    public static String httpClientPostFormData(String requestUri, Map<String, String> headerParam, Map<String,String> requestParam,String fileName, File file) {
+    public static String httpClientPostFormData(String requestUri, Map<String, String> headerParam, Map<String, String> requestParam, String fileName, File file) {
 
-        return httpClientPostFormData(requestUri, headerParam, requestParam, fileName, file, null,null);
+        return httpClientPostFormData(requestUri, headerParam, requestParam, fileName, file, null, null);
     }
 
     /**
      * http post form-data /multipart/form-data
-     * @param requestUri 请求url
-     * @param headerParam 请求头参数
-     * @param requestParam 请求参数
-     * @param fileName 文件参数名
-     * @param file 文件
-     *  @param requestEncode 请求参数编码
-     * @param resultEncode 返回参数编码
+     *
+     * @param requestUri    请求url
+     * @param headerParam   请求头参数
+     * @param requestParam  请求参数
+     * @param fileName      文件参数名
+     * @param file          文件
+     * @param requestEncode 请求参数编码
+     * @param resultEncode  返回参数编码
      * @return
      */
-    public static String httpClientPostFormData(String requestUri, Map<String, String> headerParam, Map<String,String> requestParam, String fileName, File file, String requestEncode, String resultEncode) {
+    public static String httpClientPostFormData(String requestUri, Map<String, String> headerParam, Map<String, String> requestParam, String fileName, File file, String requestEncode, String resultEncode) {
         try {
 
             MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
-            if(file != null && StringUtils.isNotBlank(fileName)){
+            if (file != null && StringUtils.isNotBlank(fileName)) {
                 multipartEntityBuilder.addBinaryBody(fileName, file).setMode(HttpMultipartMode.RFC6532);
             }
-            Optional.ofNullable(requestParam).orElse(new HashMap<>(16)).forEach((k, v) -> multipartEntityBuilder.addPart(k,new StringBody(v,ContentType.create("text/plain", Charset.forName(requestEncode)))));
+            Optional.ofNullable(requestParam).orElse(new HashMap<>(16)).forEach((k, v) -> multipartEntityBuilder.addPart(k, new StringBody(v, ContentType.create("text/plain", Charset.forName(requestEncode)))));
             HttpPost httpPost = new HttpPost(requestUri);
-            Optional.ofNullable(headerParam).orElse(new HashMap<>(16)).forEach((k,v) -> httpPost.setHeader(k,v));
+            Optional.ofNullable(headerParam).orElse(new HashMap<>(16)).forEach((k, v) -> httpPost.setHeader(k, v));
             httpPost.setEntity(multipartEntityBuilder.build());
             return httpClientExecute(httpPost, resultEncode);
         } catch (Exception e) {
@@ -268,10 +281,11 @@ public class HttpClientUtil {
 
     /**
      * 根据url获取远程文件资源
+     *
      * @param url 访问地址
      * @return byte数组
      */
-    public static byte[] getByteFromUrl(String url){
+    public static byte[] getByteFromUrl(String url) {
         try {
             byte[] data;
             HttpGet get = new HttpGet(url);

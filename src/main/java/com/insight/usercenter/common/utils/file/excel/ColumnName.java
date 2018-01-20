@@ -17,27 +17,6 @@ import static com.insight.usercenter.common.utils.file.excel.ColumnName.Policy.N
 public @interface ColumnName {
 
     /**
-     * 策略枚举
-     */
-    enum Policy {
-
-        /**
-         * 默认值
-         */
-        None,
-
-        /**
-         * 必需的(Sheet中必须包含该列)
-         */
-        Required,
-
-        /**
-         * 可忽略的(不会被导出)
-         */
-        Ignorable
-    }
-
-    /**
      * 读取列名称
      *
      * @return 名称
@@ -57,4 +36,25 @@ public @interface ColumnName {
      * @return 策略
      */
     Policy polic() default None;
+
+    /**
+     * 策略枚举
+     */
+    enum Policy {
+
+        /**
+         * 默认值
+         */
+        None,
+
+        /**
+         * 必需的(Sheet中必须包含该列)
+         */
+        Required,
+
+        /**
+         * 可忽略的(不会被导出)
+         */
+        Ignorable
+    }
 }

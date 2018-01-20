@@ -116,7 +116,7 @@ public final class Util {
      * @param request 请求对象
      * @return 客户端指纹
      */
-    public static String getFingerprint(HttpServletRequest request){
+    public static String getFingerprint(HttpServletRequest request) {
         String info = getIp(request) + request.getHeader("user-agent");
         return md5(info);
     }

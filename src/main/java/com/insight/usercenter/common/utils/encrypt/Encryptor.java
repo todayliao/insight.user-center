@@ -96,7 +96,7 @@ public final class Encryptor {
     /**
      * rsa签名
      *
-     * @param data 要签名的数据
+     * @param data      要签名的数据
      * @param publicKey 公钥
      * @return 密文
      */
@@ -107,7 +107,7 @@ public final class Encryptor {
     /**
      * rsa解密
      *
-     * @param data 密文
+     * @param data       密文
      * @param privateKey 私钥
      * @return 明文
      */

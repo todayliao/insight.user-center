@@ -153,7 +153,7 @@ public final class RsaEncryptor {
     /**
      * 私钥解密
      *
-     * @param data 密文
+     * @param data       密文
      * @param privateKey 私钥
      * @return 明文
      * @throws Exception 异常
@@ -176,7 +176,7 @@ public final class RsaEncryptor {
     /**
      * 私钥解密
      *
-     * @param data 密文
+     * @param data       密文
      * @param privateKey 私钥
      * @return 明文
      * @throws Exception 异常
@@ -204,7 +204,7 @@ public final class RsaEncryptor {
     /**
      * ASCII码转BCD码
      *
-     * @param ascii ascii bytearray
+     * @param ascii   ascii bytearray
      * @param asc_len 长度
      * @return bcd bytearray
      */
@@ -266,7 +266,7 @@ public final class RsaEncryptor {
      * 拆分字符串为数组
      *
      * @param string 字符串
-     * @param len 每组长度
+     * @param len    每组长度
      * @return 字符串数组
      */
     private String[] splitString(String string, int len) {
@@ -294,7 +294,7 @@ public final class RsaEncryptor {
      * 拆分byte数组为二维数组
      *
      * @param data bytearray data
-     * @param len 每组长度
+     * @param len  每组长度
      * @return 二维bytearray数组
      */
     private byte[][] splitArray(byte[] data, int len) {
