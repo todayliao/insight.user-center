@@ -494,12 +494,12 @@ public class AuthServiceImpl implements AuthService {
                 break;
             case 1:
                 map.put("code", code.toString());
-                map.put("product", "爱拼");
+                map.put("product", "爱思格");
                 core.sendMessage("SMS_70105327", mobile, map);
                 break;
             case 2:
                 map.put("code", code.toString());
-                map.put("product", "爱拼用户");
+                map.put("product", "爱思格用户");
                 core.sendMessage("SMS_70150487", mobile, map);
                 break;
             case 3:
@@ -507,7 +507,7 @@ public class AuthServiceImpl implements AuthService {
                 return ReplyHelper.invalidParam();
             case 5:
                 map.put("code", code.toString());
-                map.put("product", "爱拼用户");
+                map.put("product", "爱思格用户");
                 core.sendMessage("SMS_34890236", mobile, map);
                 break;
             default:
