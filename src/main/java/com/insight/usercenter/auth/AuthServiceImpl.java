@@ -110,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
     public Reply getToken(String account, String signature, String appId, String deviceId, String deviceModel) {
         String code = core.getCode(signature);
         if (code == null) {
-            String userId = core.getFromRedis(account);
+            String userId = core.getUserId(account);
             Token token = core.getToken(userId);
             if (token != null) {
                 token.addFailureCount();
