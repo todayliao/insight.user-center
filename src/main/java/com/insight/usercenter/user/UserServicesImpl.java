@@ -14,7 +14,6 @@ import com.insight.usercenter.common.utils.ReplyHelper;
 import com.insight.usercenter.common.utils.Util;
 import com.insight.usercenter.common.utils.encrypt.Encryptor;
 import com.insight.usercenter.user.dto.QueryUserDTO;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -70,14 +69,6 @@ public class UserServicesImpl implements UserServices {
         User user = userMapper.getUserById(id);
         if (user == null) {
             return ReplyHelper.notExist();
-        }
-
-        user.setOpenId(token.getWeChatOpenId());
-        if (StringUtils.isBlank(user.getOpenId())) {
-            List<String> list = userMapper.getRoleIdByMemberId(user.getId());
-            if (list != null) {
-                user.setRoles(String.join(",", list));
-            }
         }
 
         return ReplyHelper.success(user);

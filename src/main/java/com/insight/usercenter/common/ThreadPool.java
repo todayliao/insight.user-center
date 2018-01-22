@@ -147,12 +147,6 @@ public class ThreadPool {
                 token.setChanged();
             }
 
-            list = mapper.getRoleIds(token.getUserId(), token.getTenantId(), token.getDeptId());
-            if (list != null && !list.isEmpty()) {
-                token.setRoleList(list);
-                token.setChanged();
-            }
-
             if (token.isChanged()) {
                 String key = "Token:" + token.getUserId();
                 redis.opsForValue().set(key, Json.toJson(token));

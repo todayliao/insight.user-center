@@ -90,11 +90,6 @@ public class User implements Serializable {
      */
     private Date createdTime;
 
-    /**
-     * 用户角色
-     */
-    private String roles;
-
     public String getId() {
         return id;
     }
@@ -213,13 +208,5 @@ public class User implements Serializable {
 
     public void setCreatedTime(Date createdTime) {
         this.createdTime = createdTime;
-    }
-
-    public String getRoles() {
-        return roles;
-    }
-
-    public void setRoles(String roles) {
-        this.roles = roles;
     }
 }
