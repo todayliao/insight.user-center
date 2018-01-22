@@ -5,6 +5,7 @@ import com.insight.usercenter.common.entity.Device;
 import com.insight.usercenter.common.entity.User;
 import com.insight.usercenter.common.entity.UserOpenId;
 import com.insight.usercenter.common.mapper.UserMapper;
+import com.insight.usercenter.common.utils.Json;
 import com.insight.usercenter.common.utils.QiniuHelper;
 import com.insight.usercenter.common.utils.httpClient.HttpClientUtil;
 import com.insight.usercenter.common.utils.message.Message;
@@ -13,6 +14,7 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -27,6 +29,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  */
 @Component
 public class ThreadPool {
+    private final StringRedisTemplate redis;
     private final ScheduledExecutorService executorService;
     private final UserMapper mapper;
     private Logger logger;
@@ -34,10 +37,12 @@ public class ThreadPool {
     /**
      * 构造方法
      *
+     * @param redis  自动注入的StringRedisTemplate
      * @param mapper 自动注入的UserMapper
      */
     @Autowired
-    public ThreadPool(UserMapper mapper) {
+    public ThreadPool(StringRedisTemplate redis, UserMapper mapper) {
+        this.redis = redis;
         this.mapper = mapper;
 
         Integer nThreads = Runtime.getRuntime().availableProcessors() * 2;
@@ -142,7 +147,16 @@ public class ThreadPool {
                 token.setChanged();
             }
 
-            token.setRoleList(mapper.getRoleIds(token.getUserId(), token.getTenantId(), token.getDeptId()));
+            list = mapper.getRoleIds(token.getUserId(), token.getTenantId(), token.getDeptId());
+            if (list != null && !list.isEmpty()) {
+                token.setRoleList(list);
+                token.setChanged();
+            }
+
+            if (token.isChanged()) {
+                String key = "Token:" + token.getUserId();
+                redis.opsForValue().set(key, Json.toJson(token));
+            }
         });
     }
 

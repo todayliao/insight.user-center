@@ -266,17 +266,24 @@ public class Core {
      * @return 应用的令牌生命周期小时数
      */
     public Integer getTokenLife(String appId) {
-        String fiele = "TokenLife";
+        if (appId == null || appId.isEmpty()){
+            return 24;
+        }
 
         // 从缓存读取应用的令牌生命周期
+        String fiele = "TokenLife";
         Object val = getFromRedis(appId, fiele);
         if (val != null) {
-            return (Integer) val;
+            return Integer.valueOf(val.toString());
         }
 
         // 从数据库读取应用的令牌生命周期
         Integer hours = authMapper.getTokenLife(appId);
-        setToRedis(appId, fiele, hours == null ? 24 : hours);
+        if (hours == null){
+            hours = 24;
+        }
+
+        setToRedis(appId, fiele, hours.toString());
 
         return hours;
     }
@@ -462,7 +469,7 @@ public class Core {
      * @param field 字段名称
      * @param value 值
      */
-    public void setToRedis(String key, String field, Object value) {
+    public void setToRedis(String key, String field, String value) {
         redis.opsForHash().put(key, field, value);
     }
 
