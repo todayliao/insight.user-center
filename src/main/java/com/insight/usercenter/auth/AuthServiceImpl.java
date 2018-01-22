@@ -110,25 +110,19 @@ public class AuthServiceImpl implements AuthService {
     public Reply getToken(String account, String signature, String appId, String deviceId, String deviceModel) {
         String code = core.getCode(signature);
         if (code == null) {
-            String key = Util.md5(account);
-            String id = core.getFromRedis(key);
-            if (id == null || id.isEmpty()) {
-                return ReplyHelper.invalidPassword("验证码或密码错误！");
-            }
-
-            Token token = core.getToken(id);
+            String userId = core.getFromRedis(account);
+            Token token = core.getToken(userId);
             if (token != null) {
                 token.addFailureCount();
                 core.setTokenCache(token);
                 logger.warn("账号[" + account + "]正在尝试使用错误的签名请求令牌!");
             }
 
-            return ReplyHelper.invalidPassword();
+            return ReplyHelper.invalidPassword("验证码或密码错误！");
         }
 
         String userId = core.getFromRedis(code);
         if (userId == null || userId.isEmpty()) {
-            core.deleteFromRedis(code);
             return ReplyHelper.fail("缓存异常");
         }
 

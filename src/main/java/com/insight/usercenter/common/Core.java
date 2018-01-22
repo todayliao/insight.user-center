@@ -65,7 +65,8 @@ public class Core {
      * @return 用户ID
      */
     public String getUserId(String account) {
-        String userId = getFromRedis(account);
+        String key = "ID:" + account;
+        String userId = getFromRedis(key);
         if (userId != null && !userId.isEmpty()) {
             return userId;
         }
@@ -83,21 +84,25 @@ public class Core {
 
             // 缓存用户ID到Redis
             userId = user.getId();
-            setToRedis(user.getAccount(), userId);
+            key = "ID:" + user.getAccount();
+            setToRedis(key, userId);
 
             String mobile = user.getMobile();
             if (mobile != null && !mobile.isEmpty()) {
-                setToRedis(mobile, userId);
+                key = "ID:" + mobile;
+                setToRedis(key, userId);
             }
 
             String openId = user.getOpenId();
             if (openId != null && !openId.isEmpty()) {
-                setToRedis(openId, userId);
+                key = "ID:" + openId;
+                setToRedis(key, userId);
             }
 
             String mail = user.getEmail();
             if (mail != null && !mail.isEmpty()) {
-                setToRedis(mail, userId);
+                key = "ID:" + mail;
+                setToRedis(key, userId);
             }
 
             Token token = new Token(user);
@@ -147,7 +152,7 @@ public class Core {
         String code = Generator.uuid();
         String signature = Util.md5(key + code);
 
-        // 缓存Code,签名作为key
+        // 缓存签名-Code,以及Code-用户ID.
         setToRedis(signature, code, seconds, TimeUnit.SECONDS);
         setToRedis(code, token.getUserId());
 
@@ -245,7 +250,8 @@ public class Core {
      * @return Token(可能为null)
      */
     public Token getToken(String userId) {
-        String json = getFromRedis(userId);
+        String key = "Token:" + userId;
+        String json = getFromRedis(key);
         if (json == null || json.isEmpty()) {
             return null;
         }
@@ -422,8 +428,9 @@ public class Core {
             return;
         }
 
+        String key = "Token:" + token.getUserId();
         String json = Json.toJson(token);
-        setToRedis(token.getUserId(), json);
+        setToRedis(key, json);
     }
 
     /**

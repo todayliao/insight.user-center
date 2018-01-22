@@ -16,8 +16,12 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class CallManage {
+    private final StringRedisTemplate redis;
+
     @Autowired
-    private StringRedisTemplate redis;
+    public CallManage(StringRedisTemplate redis) {
+        this.redis = redis;
+    }
 
     /**
      * 获取限流计时周期剩余秒数
@@ -31,9 +35,10 @@ public class CallManage {
             return 0;
         }
 
-        String val = redis.opsForValue().get(key);
+        String limitKey = "Limit:" + key;
+        String val = redis.opsForValue().get(limitKey);
         if (val == null || val.isEmpty()) {
-            redis.opsForValue().set(key, DateHelper.getDateTime(), seconds, TimeUnit.SECONDS);
+            redis.opsForValue().set(limitKey, DateHelper.getDateTime(), seconds, TimeUnit.SECONDS);
 
             return 0;
         }
@@ -45,7 +50,7 @@ public class CallManage {
         }
 
         // 调用时间间隔低于1秒时,重置调用时间为当前时间作为惩罚
-        redis.opsForValue().set(key, DateHelper.getDateTime(), seconds, TimeUnit.SECONDS);
+        redis.opsForValue().set(limitKey, DateHelper.getDateTime(), seconds, TimeUnit.SECONDS);
 
         return seconds;
     }
@@ -64,22 +69,23 @@ public class CallManage {
         }
 
         // 如记录不存在,则记录访问次数为1
-        String val = redis.opsForValue().get(key);
+        String limitKey = "Limit:" + key;
+        String val = redis.opsForValue().get(limitKey);
         if (val == null || val.isEmpty()) {
-            redis.opsForValue().set(key, "1", seconds, TimeUnit.SECONDS);
+            redis.opsForValue().set(limitKey, "1", seconds, TimeUnit.SECONDS);
 
             return false;
         }
 
         // 读取访问次数,如次数超过限制,返回true,否则访问次数增加1次
         Integer count = Integer.valueOf(val);
-        Long expire = redis.getExpire(key, TimeUnit.SECONDS);
+        Long expire = redis.getExpire(limitKey, TimeUnit.SECONDS);
         if (count > max) {
             return true;
         }
 
         count++;
-        redis.opsForValue().set(key, count.toString(), expire, TimeUnit.SECONDS);
+        redis.opsForValue().set(limitKey, count.toString(), expire, TimeUnit.SECONDS);
         return false;
     }
 }
