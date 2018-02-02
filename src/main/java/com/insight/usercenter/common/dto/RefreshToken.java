@@ -1,4 +1,4 @@
-package com.insight.usercenter.auth.dto;
+package com.insight.usercenter.common.dto;
 
 import java.io.Serializable;
 

@@ -1,7 +1,7 @@
 package com.insight.usercenter.auth;
 
-import com.insight.usercenter.auth.dto.RefreshToken;
-import com.insight.usercenter.auth.dto.UserInfo;
+import com.insight.usercenter.common.dto.RefreshToken;
+import com.insight.usercenter.common.dto.UserInfo;
 import com.insight.usercenter.common.Verify;
 import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.Device;

@@ -1,4 +1,6 @@
-package com.insight.usercenter.common.dto;
+package com.insight.usercenter.common.filter;
+
+import com.insight.usercenter.common.dto.AccessToken;
 
 import java.io.Serializable;
 import java.util.Date;

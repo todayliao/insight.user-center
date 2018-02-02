@@ -1,8 +1,8 @@
 package com.insight.usercenter.auth;
 
-import com.insight.usercenter.auth.dto.RefreshToken;
-import com.insight.usercenter.auth.dto.TokenPackage;
-import com.insight.usercenter.auth.dto.UserInfo;
+import com.insight.usercenter.common.dto.RefreshToken;
+import com.insight.usercenter.common.dto.TokenPackage;
+import com.insight.usercenter.common.dto.UserInfo;
 import com.insight.usercenter.common.Core;
 import com.insight.usercenter.common.PicCode;
 import com.insight.usercenter.common.Token;

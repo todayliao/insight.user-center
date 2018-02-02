@@ -23,9 +23,9 @@ public class Keys {
     private String appId;
 
     /**
-     * 令牌生命周期(小时)
+     * 令牌生命周期(秒)
      */
-    private Long tokenLife;
+    private Integer tokenLife;
 
     /**
      * Token验证密钥
@@ -64,23 +64,23 @@ public class Keys {
      * @param appId 应用ID
      * @param hours 令牌有效小时数
      */
-    public Keys(String appId, long hours) {
+    public Keys(String appId, int hours) {
         this.appId = appId;
 
-        tokenLife = hours;
+        tokenLife = 3600 * hours;
         secretKey = Generator.uuid();
         refreshKey = Generator.uuid();
-        expiryTime = new Date(1000 * 3600 * hours / 12 + System.currentTimeMillis() + TIME_OUT);
-        failureTime = new Date(1000 * 3600 * hours + System.currentTimeMillis() + TIME_OUT);
+        expiryTime = new Date(1000 * tokenLife.longValue() / 12 + System.currentTimeMillis() + TIME_OUT);
+        failureTime = new Date(1000 * tokenLife.longValue() + System.currentTimeMillis() + TIME_OUT);
     }
 
     /**
      * 刷新令牌关键数据
      **/
     public void refresh() {
-        expiryTime = new Date(1000 * 3600 * tokenLife / 12 + System.currentTimeMillis() + TIME_OUT);
+        expiryTime = new Date(1000 * tokenLife.longValue() / 12 + System.currentTimeMillis() + TIME_OUT);
         if (appId == null) {
-            failureTime = new Date(1000 * 3600 * tokenLife + System.currentTimeMillis() + TIME_OUT);
+            failureTime = new Date(1000 * tokenLife.longValue() + System.currentTimeMillis() + TIME_OUT);
         } else {
             secretKey = Generator.uuid();
         }
@@ -113,11 +113,11 @@ public class Keys {
         return appId;
     }
 
-    public Long getTokenLife() {
+    public Integer getTokenLife() {
         return tokenLife;
     }
 
-    public void setTokenLife(Long tokenLife) {
+    public void setTokenLife(Integer tokenLife) {
         this.tokenLife = tokenLife;
     }
 

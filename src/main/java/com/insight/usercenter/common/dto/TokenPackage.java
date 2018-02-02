@@ -1,7 +1,6 @@
-package com.insight.usercenter.auth.dto;
+package com.insight.usercenter.common.dto;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * @author 宣炳刚
@@ -22,14 +21,14 @@ public class TokenPackage implements Serializable {
     private String refreshToken;
 
     /**
-     * 令牌过期时间
+     * 令牌过期秒数
      */
-    private Date expireTime;
+    private Long expire;
 
     /**
-     * 令牌失效时间
+     * 令牌失效秒数
      */
-    private Date failureTime;
+    private Long failure;
 
     public TokenPackage() {
     }
@@ -50,19 +49,19 @@ public class TokenPackage implements Serializable {
         this.refreshToken = refreshToken;
     }
 
-    public Date getExpireTime() {
-        return expireTime;
+    public Long getExpire() {
+        return expire;
     }
 
-    public void setExpireTime(Date expireTime) {
-        this.expireTime = expireTime;
+    public void setExpire(Long expire) {
+        this.expire = expire;
     }
 
-    public Date getFailureTime() {
-        return failureTime;
+    public Long getFailure() {
+        return failure;
     }
 
-    public void setFailureTime(Date failureTime) {
-        this.failureTime = failureTime;
+    public void setFailure(Long failure) {
+        this.failure = failure;
     }
 }

@@ -1,8 +1,8 @@
 package com.insight.usercenter.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.insight.usercenter.auth.dto.RefreshToken;
-import com.insight.usercenter.auth.dto.TokenPackage;
+import com.insight.usercenter.common.dto.RefreshToken;
+import com.insight.usercenter.common.dto.TokenPackage;
 import com.insight.usercenter.common.dto.AccessToken;
 import com.insight.usercenter.common.entity.Keys;
 import com.insight.usercenter.common.entity.User;
@@ -265,8 +265,8 @@ public class Token implements Serializable {
         TokenPackage tokenPackage = new TokenPackage();
         tokenPackage.setAccessToken(Json.toBase64(accessToken));
         tokenPackage.setRefreshToken(Json.toBase64(refreshToken));
-        tokenPackage.setExpireTime(currentKeys.getExpiryTime());
-        tokenPackage.setFailureTime(currentKeys.getFailureTime());
+        tokenPackage.setExpire(currentKeys.getTokenLife().longValue() / 12);
+        tokenPackage.setFailure(currentKeys.getTokenLife().longValue());
 
         return tokenPackage;
     }

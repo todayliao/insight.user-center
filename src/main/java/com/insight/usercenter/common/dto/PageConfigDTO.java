@@ -1,5 +1,6 @@
 package com.insight.usercenter.common.dto;
 
+import com.insight.usercenter.common.utils.Json;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.util.Date;
  * @remark 分页类
  */
 public class PageConfigDTO implements Serializable {
+    private static final long serialVersionUID = -1L;
 
     /**
      * 第几页
@@ -41,6 +43,11 @@ public class PageConfigDTO implements Serializable {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date endDate;
 
+    @Override
+    public String toString() {
+        return Json.toJson(this);
+    }
+
     public Integer getPage() {
         return page == null ? 1 : page;
     }
@@ -58,9 +65,7 @@ public class PageConfigDTO implements Serializable {
     }
 
     public Integer getOffset() {
-        Integer p = page == null ? 1 : page;
-
-        return offset == null ? ((p - 1) * getPageSize()) : offset;
+        return offset == null ? ((getPage() - 1) * getPageSize()) : offset;
     }
 
     public void setOffset(Integer offset) {

@@ -1,4 +1,4 @@
-package com.insight.usercenter.common.dto;
+package com.insight.usercenter.common.filter;
 
 import org.apache.commons.io.IOUtils;
 
