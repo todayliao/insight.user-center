@@ -56,6 +56,7 @@ public class UserServicesImpl implements UserServices {
         PageHelper.startPage(user.getPage(), user.getPageSize());
         List<User> users = userMapper.getUsers(user);
         PageInfo<User> pageInfo = new PageInfo<>(users);
+
         return ReplyHelper.success(users, pageInfo.getTotal());
     }
 

@@ -1,5 +1,6 @@
 package com.insight.usercenter.tenant;
 
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.insight.usercenter.common.Token;
 import com.insight.usercenter.common.dto.Reply;
@@ -48,6 +49,7 @@ public class TenantServiceImpl implements TenantService {
      */
     @Override
     public Reply getTenants(TenantDTO tenant) {
+        PageHelper.startPage(tenant.getPage(), tenant.getPageSize());
         List<Tenant> tenants = tenantMapper.getTenants(tenant);
         PageInfo<Tenant> pageInfo = new PageInfo<>(tenants);
 

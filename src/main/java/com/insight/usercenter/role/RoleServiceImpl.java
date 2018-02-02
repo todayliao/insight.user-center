@@ -1,5 +1,6 @@
 package com.insight.usercenter.role;
 
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.insight.usercenter.common.Token;
 import com.insight.usercenter.common.dto.Reply;
@@ -49,6 +50,8 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Reply getRoles(Token token, RoleDTO role) {
         role.setTenantId(token.getTenantId());
+
+        PageHelper.startPage(role.getPage(), role.getPageSize());
         List<Role> roles = roleMapper.getRoles(role);
         PageInfo<Role> pageInfo = new PageInfo<>(roles);
 
