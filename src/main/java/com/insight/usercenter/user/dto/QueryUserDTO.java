@@ -2,6 +2,7 @@ package com.insight.usercenter.user.dto;
 
 
 import com.insight.usercenter.common.dto.PageConfigDTO;
+import com.insight.usercenter.common.utils.Json;
 
 /**
  * @author 宣炳刚
@@ -9,6 +10,12 @@ import com.insight.usercenter.common.dto.PageConfigDTO;
  * @remark 用户查询对象实体
  */
 public class QueryUserDTO extends PageConfigDTO {
+    private static final long serialVersionUID = -1L;
+
+    /**
+     * 所属租户ID
+     */
+    private String tenantId;
 
     /**
      * 用户编码
@@ -36,9 +43,27 @@ public class QueryUserDTO extends PageConfigDTO {
     private String email;
 
     /**
+     * 查询关键词
+     */
+    private String key;
+
+    /**
      * 用户状态(是否失效)
      */
     private Boolean status;
+
+    @Override
+    public String toString() {
+        return Json.toJson(this);
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
 
     public String getCode() {
         return code;
@@ -78,6 +103,14 @@ public class QueryUserDTO extends PageConfigDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public Boolean getStatus() {

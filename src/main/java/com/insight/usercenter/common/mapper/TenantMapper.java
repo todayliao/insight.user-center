@@ -23,6 +23,7 @@ public interface TenantMapper extends Mapper {
      * @return 租户数据集合
      */
     @Select("<script>SELECT * FROM ucb_tenant WHERE is_invalid=0 " +
+            "<if test='key!=null'>AND (company_name LIKE '%${key}%' OR contact_name LIKE '%${key}%' OR contact_phone LIKE '%${key}%') </if>" +
             "<if test='name!=null'>AND company_name LIKE '%${name}%' </if>" +
             "<if test='contact!=null'>AND contact_name LIKE '%${contact}%' </if>" +
             "<if test='phone!=null'>AND contact_phone LIKE '%${phone}%' </if>" +

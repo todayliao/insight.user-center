@@ -1,5 +1,6 @@
 package com.insight.usercenter.user;
 
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.insight.usercenter.auth.dto.TokenPackage;
 import com.insight.usercenter.common.Core;
@@ -52,6 +53,7 @@ public class UserServicesImpl implements UserServices {
      */
     @Override
     public Reply getUsers(QueryUserDTO user) {
+        PageHelper.startPage(user.getPage(), user.getPageSize());
         List<User> users = userMapper.getUsers(user);
         PageInfo<User> pageInfo = new PageInfo<>(users);
         return ReplyHelper.success(users, pageInfo.getTotal());

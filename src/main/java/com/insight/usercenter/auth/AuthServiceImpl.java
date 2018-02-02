@@ -468,7 +468,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 限流,每客户端每种类型验证码无限制额度为每天5次
         limitKey = Util.md5(fingerprint + type + "5/Day");
-        Boolean isLimited = callManage.isLimited(limitKey, 24 * 60 * 60, 5);
+        Boolean isLimited = callManage.isLimited(limitKey, 3600 * 24, 5);
         if (isLimited) {
             mobile = core.getFromRedis(key);
             if ((mobile == null || mobile.isEmpty())) {

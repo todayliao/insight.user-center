@@ -27,14 +27,15 @@ public interface UserMapper extends Mapper {
             @Result(property = "invalid", column = "is_invalid")})
     @Select("<script>SELECT id,user_type,code,`name`,account,mobile,open_id,email,remark,is_builtin,is_invalid,created_time " +
             "FROM ucb_user WHERE 0=0 " +
-            "<if test='account!=null'>AND account LIKE '%${account}%' </if>" +
-            "<if test='name!=null'>AND name LIKE '%${name}%' </if>" +
-            "<if test='mobile!=null'>AND mobile LIKE '%${mobile}%' </if>" +
-            "<if test='email!=null'>AND email LIKE '%${email}%' </if>" +
+            "<if test='key!=null'>AND (name LIKE '%${key}%' OR account LIKE '%${key}%' OR mobile LIKE '%${key}%' OR email LIKE '%${key}%') </if>" +
+            "<if test='name!=null'>AND name LIKE '${name}%' </if>" +
+            "<if test='account!=null'>AND account LIKE '${account}%' </if>" +
+            "<if test='mobile!=null'>AND mobile LIKE '${mobile}%' </if>" +
+            "<if test='email!=null'>AND email LIKE '${email}%' </if>" +
             "<if test='status!=null'>AND is_invalid = #{status} </if>" +
             "<if test='startDate!=null'>AND created_time >= #{startDate} </if>" +
             "<if test='endDate!=null'>AND created_time &lt; DATE_ADD(#{endDate},INTERVAL 1 day) </if>" +
-            "ORDER BY created_time DESC LIMIT #{offset},#{pageSize};</script>")
+            "ORDER BY created_time DESC</script>")
     List<User> getUsers(QueryUserDTO user);
 
     /**
