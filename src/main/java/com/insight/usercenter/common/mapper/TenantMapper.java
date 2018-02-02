@@ -30,7 +30,7 @@ public interface TenantMapper extends Mapper {
             "<if test='status!=null'>AND tenant_status = #{status} </if>" +
             "<if test='startDate!=null'>AND created_time >= #{startDate} </if>" +
             "<if test='endDate!=null'>AND created_time &lt; DATE_ADD(#{endDate},INTERVAL 1 day) </if>" +
-            "ORDER BY created_time DESC LIMIT #{offset},#{pageSize};</script>")
+            "ORDER BY created_time DESC</script>")
     List<Tenant> getTenants(TenantDTO tenant);
 
     /**

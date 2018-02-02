@@ -28,7 +28,7 @@ public interface RoleMapper extends Mapper {
             "<if test='name!=null'>AND name LIKE '%${name}%' </if>" +
             "<if test='startDate!=null'>AND created_time >= #{startDate} </if>" +
             "<if test='endDate!=null'>AND created_time &lt; DATE_ADD(#{endDate},INTERVAL 1 day) </if>" +
-            "ORDER BY created_time DESC LIMIT #{offset},#{pageSize};</script>")
+            "ORDER BY created_time DESC</script>")
     List<Role> getRoles(RoleDTO role);
 
     /**

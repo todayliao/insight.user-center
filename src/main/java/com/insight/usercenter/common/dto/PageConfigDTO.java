@@ -42,7 +42,7 @@ public class PageConfigDTO implements Serializable {
     private Date endDate;
 
     public Integer getPage() {
-        return page;
+        return page == null ? 1 : page;
     }
 
     public void setPage(Integer page) {
