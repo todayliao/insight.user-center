@@ -17,8 +17,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/userapi")
 public class UserController {
+    private final UserServices services;
+
     @Autowired
-    private UserServices services;
+    public UserController(UserServices services) {
+        this.services = services;
+    }
 
     /**
      * 获取符合条件用户

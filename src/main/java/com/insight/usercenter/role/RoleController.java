@@ -22,10 +22,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/roleapi")
 public class RoleController {
+    private final RoleService service;
+    private final CallManage callManage;
+
     @Autowired
-    RoleService service;
-    @Autowired
-    CallManage callManage;
+    public RoleController(RoleService service, CallManage callManage) {
+        this.service = service;
+        this.callManage = callManage;
+    }
 
     /**
      * 获取指定应用的全部角色

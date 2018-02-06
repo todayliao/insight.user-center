@@ -1,13 +1,9 @@
 package com.insight.usercenter.auth;
 
-import com.insight.usercenter.common.dto.RefreshToken;
-import com.insight.usercenter.common.dto.TokenPackage;
-import com.insight.usercenter.common.dto.UserInfo;
 import com.insight.usercenter.common.Core;
 import com.insight.usercenter.common.PicCode;
 import com.insight.usercenter.common.Token;
-import com.insight.usercenter.common.dto.Reply;
-import com.insight.usercenter.common.dto.UserDTO;
+import com.insight.usercenter.common.dto.*;
 import com.insight.usercenter.common.entity.Device;
 import com.insight.usercenter.common.entity.Function;
 import com.insight.usercenter.common.entity.Navigator;

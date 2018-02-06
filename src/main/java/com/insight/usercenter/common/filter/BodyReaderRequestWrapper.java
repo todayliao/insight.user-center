@@ -63,7 +63,7 @@ public class BodyReaderRequestWrapper extends HttpServletRequestWrapper {
         }
 
         @Override
-        public int read() throws IOException {
+        public int read() {
             return input.read();
         }
     }

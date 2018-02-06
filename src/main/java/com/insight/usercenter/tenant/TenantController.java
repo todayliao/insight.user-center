@@ -19,8 +19,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/tenantapi")
 public class TenantController {
+    private final TenantService service;
+
     @Autowired
-    TenantService service;
+    public TenantController(TenantService service) {
+        this.service = service;
+    }
 
     /**
      * 根据设定的条件查询租户信息(分页)

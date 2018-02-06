@@ -16,15 +16,16 @@ public class PageHelperConfig {
 
     /**
      * 配置mybatis的分页插件pageHelper
+     *
      * @return PageHelper
      */
     @Bean
-    public PageHelper pageHelper(){
+    public PageHelper pageHelper() {
         Properties properties = new Properties();
-        properties.setProperty("offsetAsPageNum","true");
-        properties.setProperty("rowBoundsWithCount","true");
-        properties.setProperty("reasonable","true");
-        properties.setProperty("dialect","mysql");
+        properties.setProperty("offsetAsPageNum", "true");
+        properties.setProperty("rowBoundsWithCount", "true");
+        properties.setProperty("reasonable", "true");
+        properties.setProperty("dialect", "mysql");
 
         PageHelper pageHelper = new PageHelper();
         pageHelper.setProperties(properties);

@@ -266,7 +266,7 @@ public class Core {
      * @return 应用的令牌生命周期小时数
      */
     public Integer getTokenLife(String appId) {
-        if (appId == null || appId.isEmpty()){
+        if (appId == null || appId.isEmpty()) {
             return 24;
         }
 
@@ -279,7 +279,7 @@ public class Core {
 
         // 从数据库读取应用的令牌生命周期
         Integer hours = authMapper.getTokenLife(appId);
-        if (hours == null){
+        if (hours == null) {
             hours = 24;
         }
 

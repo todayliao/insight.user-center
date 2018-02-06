@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/orgapi")
 public class OrgController {
+    private final OrgService service;
+
     @Autowired
-    OrgService service;
+    public OrgController(OrgService service) {
+        this.service = service;
+    }
 
     /**
      * 获取全部部门

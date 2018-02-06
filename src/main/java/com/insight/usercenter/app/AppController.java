@@ -17,8 +17,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/appapi")
 public class AppController {
+    private final AppService service;
+
     @Autowired
-    AppService service;
+    public AppController(AppService service) {
+        this.service = service;
+    }
 
     /**
      * 获取全部应用

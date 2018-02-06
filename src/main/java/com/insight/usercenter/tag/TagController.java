@@ -16,8 +16,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/tagapi")
 public class TagController {
+    private final TagService tagService;
+
     @Autowired
-    private TagService tagService;
+    public TagController(TagService tagService) {
+        this.tagService = tagService;
+    }
 
     /**
      * 获取指定标签
