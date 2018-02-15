@@ -280,25 +280,8 @@ public class Token implements Serializable {
      */
     @JsonIgnore
     public Boolean verifyToken(String key, int type) {
-        if (currentKeys != null) {
-            switch (type) {
-                case 1:
-                    if (currentKeys.getSecretKey().equals(key)) {
-                        return true;
-                    } else {
-                        break;
-                    }
-
-                case 2:
-                    if (currentKeys.getRefreshKey().equals(key)) {
-                        return true;
-                    } else {
-                        break;
-                    }
-
-                default:
-                    break;
-            }
+        if (currentKeys != null && currentKeys.verifyKey(key, type)) {
+            return true;
         }
 
         addFailureCount();

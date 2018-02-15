@@ -75,6 +75,22 @@ public class Keys {
     }
 
     /**
+     * 验证密钥
+     *
+     * @param key  密钥
+     * @param type 验证类型(1:验证AccessToken、2:验证RefreshToken)
+     * @return 是否通过验证
+     */
+    public Boolean verifyKey(String key, int type) {
+        if (type < 1 || type > 2) {
+            return false;
+        }
+
+        String secret = type == 1 ? secretKey : refreshKey;
+        return secret.equals(key);
+    }
+
+    /**
      * 刷新令牌关键数据
      **/
     public void refresh() {
