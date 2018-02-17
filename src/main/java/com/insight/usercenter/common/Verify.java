@@ -35,8 +35,13 @@ public class Verify {
 
         // 初始化参数
         accessToken = Json.toAccessToken(token);
-        tokenId = accessToken.getId();
+        if (accessToken == null){
+            basis = null;
+            logger.error("提取验证信息失败。Token is:" + token);
+            return;
+        }
 
+        tokenId = accessToken.getId();
         basis = core.getToken(accessToken.getUserId());
     }
 
@@ -67,10 +72,6 @@ public class Verify {
      * @return Reply Token验证结果
      */
     public Reply compare(String function) {
-        if (accessToken == null) {
-            return ReplyHelper.invalidToken();
-        }
-
         if (basis == null) {
             return ReplyHelper.invalidToken();
         }

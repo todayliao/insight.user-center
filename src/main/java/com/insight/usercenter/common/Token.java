@@ -356,6 +356,8 @@ public class Token implements Serializable {
 
     /**
      * 使用户离线
+     *
+     * @param tokenId 令牌ID
      */
     @JsonIgnore
     public void deleteKeys(String tokenId) {
