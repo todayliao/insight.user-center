@@ -46,7 +46,9 @@ public class CallManage {
         Date time = DateHelper.parseDateTime(val);
         Long bypast = System.currentTimeMillis() - time.getTime();
         if (bypast > 1000) {
-            return seconds - bypast.intValue() / 1000;
+           int surplus = seconds - bypast.intValue() / 1000;
+
+           return surplus < 0 ? 0 : surplus;
         }
 
         // 调用时间间隔低于1秒时,重置调用时间为当前时间作为惩罚
