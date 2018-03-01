@@ -96,6 +96,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 获取Token数据
      *
+     * @param appId       应用ID
      * @param account     登录账号
      * @param signature   签名
      * @param deviceId    设备ID
@@ -103,7 +104,7 @@ public class AuthServiceImpl implements AuthService {
      * @return Reply
      */
     @Override
-    public Reply getToken(String account, String signature, String appId, String deviceId, String deviceModel) {
+    public Reply getToken(String appId, String account, String signature, String deviceId, String deviceModel) {
         String code = core.getCode(signature);
         if (code == null) {
             String userId = core.getUserId(account);
