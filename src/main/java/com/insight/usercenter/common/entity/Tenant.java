@@ -1,9 +1,8 @@
 package com.insight.usercenter.common.entity;
 
-import org.hibernate.validator.constraints.NotBlank;
-
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
@@ -30,7 +29,7 @@ public class Tenant implements Serializable {
     /**
      * 公司名称
      */
-    @NotBlank(message = "公司名称不能为空")
+    @NotEmpty(message = "公司名称不能为空")
     private String companyName;
 
     /**

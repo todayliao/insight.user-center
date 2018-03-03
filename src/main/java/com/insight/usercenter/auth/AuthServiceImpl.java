@@ -84,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
         String key = Util.md5("getCode" + userId + type);
         Integer surplus = callManage.getSurplus(key, type == 0 ? 5 : 5);
         if (surplus > 0) {
-            return ReplyHelper.tooOften(surplus);
+            return ReplyHelper.tooOften();
         }
 
         // 生成Code
@@ -460,7 +460,7 @@ public class AuthServiceImpl implements AuthService {
         String limitKey = Util.md5("getSmsCode" + fingerprint + type);
         Integer surplus = callManage.getSurplus(limitKey, 60);
         if (surplus > 0) {
-            return ReplyHelper.tooOften(surplus);
+            return ReplyHelper.tooOften();
         }
 
         // 限流,每客户端每种类型验证码无限制额度为每天5次

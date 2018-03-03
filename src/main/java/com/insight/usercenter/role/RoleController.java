@@ -85,7 +85,7 @@ public class RoleController {
         String key = Util.md5("addRole" + verify.getTokenId());
         Integer surplus = callManage.getSurplus(key, 30);
         if (surplus > 0) {
-            return ReplyHelper.tooOften(surplus);
+            return ReplyHelper.tooOften();
         }
 
         return service.addRole(verify.getBasis(), role);
