@@ -510,7 +510,7 @@ public class UserServicesImpl implements UserServices {
         }
 
         // 保存密码到数据库
-        Integer count = userMapper.updatePassword(userId, password);
+        Integer count = userMapper.updatePassword(userId, key);
         if (count <= 0) {
             return ReplyHelper.error();
         }
@@ -518,8 +518,13 @@ public class UserServicesImpl implements UserServices {
         // 绑定设备到用户,并更新设备激活信息
         core.setTenantIdAndDeptId(token);
 
+        // 更新Token缓存
+        token.setPassword(key);
+        token.setChanged();
+
         // 生成令牌数据
         TokenPackage tokens = token.creatorKey(Generator.uuid(), appId, core.getTokenLife(appId));
+        core.setTokenCache(token);
 
         return ReplyHelper.success(tokens);
     }
