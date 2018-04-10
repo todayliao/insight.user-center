@@ -1,6 +1,6 @@
 package com.insight.usercenter.common.dto;
 
-import com.insight.usercenter.common.utils.Json;
+import com.insight.util.Json;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;

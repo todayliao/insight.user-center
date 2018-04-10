@@ -1,6 +1,6 @@
 package com.insight.usercenter.org;
 
-import com.insight.usercenter.common.dto.Reply;
+import com.insight.util.pojo.Reply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

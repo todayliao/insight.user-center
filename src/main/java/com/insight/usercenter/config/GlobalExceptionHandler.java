@@ -1,7 +1,7 @@
 package com.insight.usercenter.config;
 
-import com.insight.usercenter.common.dto.Reply;
-import com.insight.usercenter.common.utils.ReplyHelper;
+import com.insight.util.ReplyHelper;
+import com.insight.util.pojo.Reply;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;

@@ -1,7 +1,7 @@
 package com.insight.usercenter.common.dto;
 
 
-import com.insight.usercenter.common.utils.wechat.WeChatUser;
+import com.insight.utils.wechat.WeChatUser;
 
 import java.io.Serializable;
 

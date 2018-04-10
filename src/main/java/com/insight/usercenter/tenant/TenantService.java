@@ -2,9 +2,9 @@ package com.insight.usercenter.tenant;
 
 
 import com.insight.usercenter.common.Token;
-import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.Tenant;
 import com.insight.usercenter.tenant.dto.TenantDTO;
+import com.insight.util.pojo.Reply;
 
 import java.util.List;
 

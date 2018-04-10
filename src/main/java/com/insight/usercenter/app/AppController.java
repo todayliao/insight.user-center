@@ -1,10 +1,10 @@
 package com.insight.usercenter.app;
 
 import com.insight.usercenter.common.Verify;
-import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.App;
 import com.insight.usercenter.common.entity.Function;
 import com.insight.usercenter.common.entity.Navigator;
+import com.insight.util.pojo.Reply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

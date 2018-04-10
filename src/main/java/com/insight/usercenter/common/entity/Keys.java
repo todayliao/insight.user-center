@@ -1,7 +1,7 @@
 package com.insight.usercenter.common.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.insight.usercenter.common.utils.Generator;
+import com.insight.util.Generator;
 
 import java.util.Date;
 

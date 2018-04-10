@@ -1,14 +1,14 @@
 package com.insight.usercenter.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.insight.usercenter.common.dto.AccessToken;
 import com.insight.usercenter.common.dto.RefreshToken;
 import com.insight.usercenter.common.dto.TokenPackage;
 import com.insight.usercenter.common.entity.Keys;
 import com.insight.usercenter.common.entity.User;
-import com.insight.usercenter.common.utils.Json;
-import com.insight.usercenter.common.utils.Util;
-import com.insight.usercenter.common.utils.encrypt.Encryptor;
+import com.insight.util.Json;
+import com.insight.util.Util;
+import com.insight.util.encrypt.Encryptor;
+import com.insight.util.pojo.AccessToken;
 
 import java.io.Serializable;
 import java.util.*;

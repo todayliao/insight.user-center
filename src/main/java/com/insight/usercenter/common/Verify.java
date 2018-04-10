@@ -1,10 +1,10 @@
 package com.insight.usercenter.common;
 
-import com.insight.usercenter.common.dto.AccessToken;
-import com.insight.usercenter.common.dto.Reply;
-import com.insight.usercenter.common.utils.Json;
-import com.insight.usercenter.common.utils.ReplyHelper;
-import com.insight.usercenter.common.utils.common.ApplicationContextHolder;
+import com.insight.util.Json;
+import com.insight.util.ReplyHelper;
+import com.insight.util.common.ApplicationContextHolder;
+import com.insight.util.pojo.AccessToken;
+import com.insight.util.pojo.Reply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

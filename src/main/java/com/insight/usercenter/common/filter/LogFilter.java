@@ -1,7 +1,7 @@
 package com.insight.usercenter.common.filter;
 
-import com.insight.usercenter.common.utils.Json;
-import com.insight.usercenter.common.utils.Util;
+import com.insight.util.Json;
+import com.insight.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

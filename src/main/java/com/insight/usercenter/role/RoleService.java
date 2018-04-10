@@ -1,10 +1,10 @@
 package com.insight.usercenter.role;
 
 import com.insight.usercenter.common.Token;
-import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.Member;
 import com.insight.usercenter.common.entity.Role;
 import com.insight.usercenter.role.dto.RoleDTO;
+import com.insight.util.pojo.Reply;
 
 import java.util.List;
 

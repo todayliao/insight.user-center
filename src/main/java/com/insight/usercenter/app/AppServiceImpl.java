@@ -1,13 +1,13 @@
 package com.insight.usercenter.app;
 
 import com.insight.usercenter.common.Token;
-import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.App;
 import com.insight.usercenter.common.entity.Function;
 import com.insight.usercenter.common.entity.Navigator;
 import com.insight.usercenter.common.mapper.AppMapper;
-import com.insight.usercenter.common.utils.Generator;
-import com.insight.usercenter.common.utils.ReplyHelper;
+import com.insight.util.Generator;
+import com.insight.util.ReplyHelper;
+import com.insight.util.pojo.Reply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,13 +1,13 @@
 package com.insight.usercenter.role;
 
 import com.insight.usercenter.common.Verify;
-import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.Member;
 import com.insight.usercenter.common.entity.Role;
-import com.insight.usercenter.common.utils.ReplyHelper;
-import com.insight.usercenter.common.utils.Util;
-import com.insight.usercenter.common.utils.redis.CallManage;
 import com.insight.usercenter.role.dto.RoleDTO;
+import com.insight.util.ReplyHelper;
+import com.insight.util.Util;
+import com.insight.util.pojo.Reply;
+import com.insight.utils.redis.CallManage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

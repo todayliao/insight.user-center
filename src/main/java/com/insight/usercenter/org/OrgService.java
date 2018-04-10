@@ -1,7 +1,7 @@
 package com.insight.usercenter.org;
 
 
-import com.insight.usercenter.common.dto.Reply;
+import com.insight.util.pojo.Reply;
 
 /**
  * @author 郑昊

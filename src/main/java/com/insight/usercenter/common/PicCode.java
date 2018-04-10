@@ -1,7 +1,7 @@
 package com.insight.usercenter.common;
 
-import com.insight.usercenter.common.utils.Util;
-import com.insight.usercenter.common.utils.common.Base64Encryptor;
+import com.insight.util.Util;
+import com.insight.util.common.Base64Encryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -21,8 +21,12 @@ import java.util.concurrent.TimeUnit;
  */
 @Component()
 public class PicCode {
+    private final StringRedisTemplate redis;
+
     @Autowired
-    private StringRedisTemplate redis;
+    public PicCode(StringRedisTemplate redis) {
+        this.redis = redis;
+    }
 
     /**
      * 生成验证问题图片

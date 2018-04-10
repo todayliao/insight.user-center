@@ -2,10 +2,10 @@ package com.insight.usercenter.auth;
 
 import com.insight.usercenter.common.Verify;
 import com.insight.usercenter.common.dto.RefreshToken;
-import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.dto.UserInfo;
 import com.insight.usercenter.common.entity.Device;
-import com.insight.usercenter.common.utils.Json;
+import com.insight.util.Json;
+import com.insight.util.pojo.Reply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

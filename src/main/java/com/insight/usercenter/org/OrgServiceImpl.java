@@ -1,9 +1,9 @@
 package com.insight.usercenter.org;
 
-import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.Organization;
 import com.insight.usercenter.common.mapper.OrgMapper;
-import com.insight.usercenter.common.utils.ReplyHelper;
+import com.insight.util.ReplyHelper;
+import com.insight.util.pojo.Reply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

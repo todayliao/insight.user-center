@@ -3,9 +3,9 @@ package com.insight.usercenter.auth;
 
 import com.insight.usercenter.common.Token;
 import com.insight.usercenter.common.dto.RefreshToken;
-import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.dto.UserInfo;
 import com.insight.usercenter.common.entity.Device;
+import com.insight.util.pojo.Reply;
 
 import java.io.IOException;
 

@@ -2,7 +2,7 @@ package com.insight.usercenter.tenant.dto;
 
 
 import com.insight.usercenter.common.dto.PageConfigDTO;
-import com.insight.usercenter.common.utils.Json;
+import com.insight.util.Json;
 
 /**
  * @author 宣炳刚

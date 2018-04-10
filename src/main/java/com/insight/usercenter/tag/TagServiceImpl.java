@@ -1,12 +1,12 @@
 package com.insight.usercenter.tag;
 
-import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.entity.Device;
 import com.insight.usercenter.common.entity.Tag;
 import com.insight.usercenter.common.mapper.TagMapper;
-import com.insight.usercenter.common.utils.Generator;
-import com.insight.usercenter.common.utils.ReplyHelper;
 import com.insight.usercenter.tag.dto.TagDTO;
+import com.insight.util.Generator;
+import com.insight.util.ReplyHelper;
+import com.insight.util.pojo.Reply;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

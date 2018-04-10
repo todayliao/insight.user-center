@@ -2,9 +2,9 @@ package com.insight.usercenter.user;
 
 
 import com.insight.usercenter.common.Token;
-import com.insight.usercenter.common.dto.Reply;
 import com.insight.usercenter.common.dto.UserDTO;
 import com.insight.usercenter.user.dto.QueryUserDTO;
+import com.insight.util.pojo.Reply;
 
 /**
  * @author 宣炳刚
